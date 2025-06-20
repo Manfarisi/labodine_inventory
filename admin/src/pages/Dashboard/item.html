@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Point of Sales Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Material+Icons" rel="stylesheet" />
+<style>
+  /* Reset & base */
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background: #f4f7fa;
+    color: #1e293b;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+  /* Scrollbar - minimal */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.1);
+    border-radius: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  /* Layout containers */
+  #app {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    grid-template-rows: 60px 1fr;
+    grid-template-areas:
+      "sidebar header"
+      "sidebar main";
+    min-height: 100vh;
+  }
+  header {
+    grid-area: header;
+    background: #0f172a;
+    color: #f8fafc;
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    font-weight: 700;
+    font-size: 1.25rem;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    box-shadow: 0 2px 8px rgb(0 0 0 / 0.15);
+  }
+  nav.sidebar {
+    grid-area: sidebar;
+    background: #152237;
+    color: #cbd5e1;
+    display: flex;
+    flex-direction: column;
+    padding: 20px 0;
+    border-right: 1px solid #334155;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+  }
+  main {
+    grid-area: main;
+    overflow-y: auto;
+    padding: 24px 32px;
+    background: #f4f7fa;
+  }
+
+  /* Sidebar Nav */
+  .sidebar .logo {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: #38bdf8; /* sky-400 */
+    padding: 0 24px 24px 24px;
+    user-select: none;
+  }
+  .nav-links {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 0 12px;
+    flex-grow: 1;
+  }
+  .nav-links button, .nav-links a {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 20px;
+    border-radius: 12px;
+    border: none;
+    background: transparent;
+    color: #cbd5e1;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    text-align: left;
+  }
+  .nav-links button:focus, .nav-links a:focus {
+    outline-offset: 4px;
+    outline: 2px solid #38bdf8;
+  }
+  .nav-links button:hover, .nav-links a:hover {
+    background: #334155;
+    color: #f1f5f9;
+  }
+  .nav-links button.active {
+    background: #38bdf8;
+    color: #0f172a;
+    pointer-events: none;
+  }
+  .material-icons {
+    font-size: 1.4rem;
+    line-height: 1;
+  }
+
+  /* Header nav right */
+  .header-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+  .user-profile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+  }
+  .user-profile img {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #38bdf8;
+  }
+  .user-profile span {
+    color: #f1f5f9;
+    font-weight: 600;
+  }
+  /* Dashboard grid sections */
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit,minmax(280px,1fr));
+    gap: 24px;
+    margin-bottom: 40px;
+  }
+  /* Card styles */
+  .card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 4px 12px rgb(0 0 0 / 0.06);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .card h3 {
+    font-weight: 700;
+    font-size: 1.25rem;
+    margin-bottom: 8px;
+    color: #0f172a;
+  }
+  .card .value {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #2563eb; /* blue-600 */
+  }
+  .card .subtext {
+    font-size: 0.9rem;
+    color: #64748b;
+  }
+
+  /* Metrics summary */
+  .metrics {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .metric {
+    flex: 1 1 140px;
+    background: #eef2ff;
+    border-radius: 12px;
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .metric .icon {
+    font-size: 2rem;
+    color: #2563eb;
+    margin-bottom: 8px;
+  }
+  .metric .number {
+    font-weight: 700;
+    font-size: 1.6rem;
+    color: #1e293b;
+  }
+  .metric .label {
+    font-size: 0.9rem;
+    color: #64748b;
+  }
+
+  /* Table styles */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0 2px 8px rgb(0 0 0 /0.05);
+  }
+  thead {
+    background: #e0e7ff;
+    color: #1e293b;
+  }
+  th, td {
+    padding: 14px 18px;
+    text-align: left;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 0.9rem;
+  }
+  tbody tr:hover {
+    background: #f8fafc;
+  }
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
+  .status-pill {
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 9999px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    color: #fff;
+  }
+  .status-completed {
+    background-color: #28a745;
+  }
+  .status-pending {
+    background-color: #f97316;
+  }
+  .status-canceled {
+    background-color: #ef4444;
+  }
+
+  /* Chart container */
+  .chart-container {
+    height: 300px;
+  }
+
+  /* Responsive tweaks */
+  @media (max-width: 1024px) {
+    #app {
+      grid-template-columns: 64px 1fr;
+    }
+    nav.sidebar {
+      padding: 12px 0;
+    }
+    .sidebar .logo {
+      display: none;
+    }
+    .nav-links button, .nav-links a {
+      justify-content: center;
+      padding: 12px 0;
+    }
+    .nav-links button span, .nav-links a span {
+      display: none;
+    }
+    header {
+      padding: 0 16px;
+    }
+    main {
+      padding: 20px;
+    }
+    .dashboard-grid {
+      gap: 16px;
+    }
+  }
+  @media (max-width: 640px) {
+    #app {
+      display: flex;
+      flex-direction: column;
+    }
+    nav.sidebar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 56px;
+      background: #152237;
+      flex-direction: row;
+      padding: 0 10px;
+      border-top: 1px solid #334155;
+      z-index: 30;
+      overflow-x: auto;
+    }
+    .nav-links {
+      flex-direction: row;
+      gap: 16px;
+      padding: 0;
+    }
+    .nav-links button, .nav-links a {
+      padding: 0;
+      flex-direction: column;
+      align-items: center;
+      font-size: 0.7rem;
+    }
+    .nav-links button span, .nav-links a span {
+      display: block;
+      margin-top: 4px;
+    }
+    header {
+      grid-area: header;
+      padding-left: 16px;
+      font-size: 1.1rem;
+    }
+    main {
+      padding: 16px 16px 72px 16px;
+    }
+  }
+  /* Button reset */
+  button {
+    font-family: inherit;
+  }
+</style>
+</head>
+<body>
+<div id="app" role="application" aria-label="Point of Sales Dashboard">
+  <nav class="sidebar" aria-label="Main Navigation">
+    <div class="logo" aria-label="Point of Sales Logo">POS</div>
+    <div class="nav-links" role="menu" aria-label="Sidebar navigation links">
+      <button role="menuitem" aria-current="page" class="active" data-section="dashboard"><span class="material-icons" aria-hidden="true">dashboard</span><span>Dashboard</span></button>
+      <button role="menuitem" data-section="sales"><span class="material-icons" aria-hidden="true">point_of_sale</span><span>Sales</span></button>
+      <button role="menuitem" data-section="products"><span class="material-icons" aria-hidden="true">inventory_2</span><span>Products</span></button>
+      <button role="menuitem" data-section="customers"><span class="material-icons" aria-hidden="true">people</span><span>Customers</span></button>
+      <button role="menuitem" data-section="reports"><span class="material-icons" aria-hidden="true">bar_chart</span><span>Reports</span></button>
+      <button role="menuitem" data-section="settings"><span class="material-icons" aria-hidden="true">settings</span><span>Settings</span></button>
+    </div>
+  </nav>
+
+  <header>
+    <div aria-label="Application Title">My POS Dashboard</div>
+    <div class="header-right">
+      <button aria-label="Search" title="Search" style="background:none; border:none; color:#f1f5f9; cursor:pointer;">
+        <span class="material-icons" aria-hidden="true">search</span>
+      </button>
+      <div class="user-profile" tabindex="0" aria-haspopup="true" aria-label="User Profile">
+        <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/84e2ea9b-8853-4896-90cb-4fce8cdb2ffa.png" alt="User avatar placeholder, circle shape with letter U" onerror="this.src='https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/35481b88-c629-4e62-af8b-675ae326f7da.png?'" />
+        <span>Admin</span>
+      </div>
+    </div>
+  </header>
+
+  <main tabindex="0" id="content" aria-live="polite">
+    <!-- DASHBOARD SECTION -->
+    <section data-section="dashboard" class="section-active" aria-label="Dashboard Overview">
+      <div class="dashboard-grid" role="region" aria-labelledby="dashboard-metrics-title" tabindex="0">
+        <div class="card" aria-labelledby="total-sales-label" role="region">
+          <h3 id="total-sales-label">Total Sales</h3>
+          <div class="value" id="total-sales-value">$125,430</div>
+          <div class="subtext">Last 30 days</div>
+        </div>
+        <div class="card" aria-labelledby="transactions-label" role="region">
+          <h3 id="transactions-label">Transactions</h3>
+          <div class="value" id="transactions-value">1,237</div>
+          <div class="subtext">Completed orders</div>
+        </div>
+        <div class="card" aria-labelledby="top-product-label" role="region">
+          <h3 id="top-product-label">Top Product</h3>
+          <div class="value" id="top-product-value">Wireless Headphones</div>
+          <div class="subtext">Units sold: 457</div>
+        </div>
+      </div>
+
+      <h2 id="recent-sales-title" style="margin-bottom: 16px; font-weight: 700; font-size: 1.4rem; color: #334155;">Recent Sales</h2>
+      <div style="overflow-x:auto;">
+      <table aria-labelledby="recent-sales-title" role="grid">
+        <thead>
+          <tr role="row">
+            <th scope="col">Order #</th>
+            <th scope="col">Customer</th>
+            <th scope="col">Date</th>
+            <th scope="col">Payment</th>
+            <th scope="col">Status</th>
+            <th scope="col">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr role="row">
+            <td>#10234</td>
+            <td>Jane Doe</td>
+            <td>2024-06-02</td>
+            <td>Credit Card</td>
+            <td><span class="status-pill status-completed" aria-label="Completed">Completed</span></td>
+            <td>$120.50</td>
+          </tr>
+          <tr role="row">
+            <td>#10233</td>
+            <td>John Smith</td>
+            <td>2024-06-01</td>
+            <td>Cash</td>
+            <td><span class="status-pill status-pending" aria-label="Pending">Pending</span></td>
+            <td>$79.99</td>
+          </tr>
+          <tr role="row">
+            <td>#10232</td>
+            <td>Alice Johnson</td>
+            <td>2024-05-31</td>
+            <td>PayPal</td>
+            <td><span class="status-pill status-completed" aria-label="Completed">Completed</span></td>
+            <td>$235.00</td>
+          </tr>
+          <tr role="row">
+            <td>#10231</td>
+            <td>Michael Brown</td>
+            <td>2024-05-30</td>
+            <td>Credit Card</td>
+            <td><span class="status-pill status-canceled" aria-label="Canceled">Canceled</span></td>
+            <td>$0</td>
+          </tr>
+          <tr role="row">
+            <td>#10230</td>
+            <td>Lucy Gray</td>
+            <td>2024-05-30</td>
+            <td>Cash</td>
+            <td><span class="status-pill status-completed" aria-label="Completed">Completed</span></td>
+            <td>$45.75</td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
+    </section>
+
+    <!-- SALES SECTION -->
+    <section data-section="sales" class="hidden" aria-label="Sales Section">
+      <h2 style="font-weight: 700; font-size: 1.5rem; margin-bottom:24px;">Recent Transactions</h2>
+      <div style="overflow-x:auto;">
+      <table aria-label="List of recent transactions" role="grid">
+        <thead>
+          <tr role="row">
+            <th scope="col">Transaction ID</th>
+            <th scope="col">Product</th>
+            <th scope="col">Quantity</th>
+            <th scope="col">Price</th>
+            <th scope="col">Date</th>
+            <th scope="col">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr role="row">
+            <td>TX1001</td>
+            <td>Wireless Headphones</td>
+            <td>2</td>
+            <td>$100.00</td>
+            <td>2024-06-02</td>
+            <td><span class="status-pill status-completed" aria-label="Completed">Completed</span></td>
+          </tr>
+          <tr role="row">
+            <td>TX1002</td>
+            <td>Smart Watch</td>
+            <td>1</td>
+            <td>$150.00</td>
+            <td>2024-06-01</td>
+            <td><span class="status-pill status-pending" aria-label="Pending">Pending</span></td>
+          </tr>
+          <tr role="row">
+            <td>TX1003</td>
+            <td>USB Cable</td>
+            <td>5</td>
+            <td>$25.00</td>
+            <td>2024-05-31</td>
+            <td><span class="status-pill status-completed" aria-label="Completed">Completed</span></td>
+          </tr>
+          <tr role="row">
+            <td>TX1004</td>
+            <td>Bluetooth Speaker</td>
+            <td>1</td>
+            <td>$75.00</td>
+            <td>2024-05-30</td>
+            <td><span class="status-pill status-canceled" aria-label="Canceled">Canceled</span></td>
+          </tr>
+          <tr role="row">
+            <td>TX1005</td>
+            <td>Wireless Mouse</td>
+            <td>3</td>
+            <td>$90.00</td>
+            <td>2024-05-30</td>
+            <td><span class="status-pill status-completed" aria-label="Completed">Completed</span></td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
+    </section>
+
+    <!-- PRODUCTS SECTION -->
+    <section data-section="products" class="hidden" aria-label="Product Catalog Section">
+      <h2 style="font-weight: 700; font-size: 1.5rem; margin-bottom:24px;">Product Catalog</h2>
+      <div style="overflow-x:auto;">
+      <table aria-label="List of products" role="grid">
+        <thead>
+          <tr role="row">
+            <th scope="col">Product ID</th>
+            <th scope="col">Name</th>
+            <th scope="col">Stock</th>
+            <th scope="col">Price</th>
+            <th scope="col">Category</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr role="row">
+            <td>P1001</td>
+            <td>Wireless Headphones</td>
+            <td>15</td>
+            <td>$50.00</td>
+            <td>Electronics</td>
+          </tr>
+          <tr role="row">
+            <td>P1002</td>
+            <td>Smart Watch</td>
+            <td>7</td>
+            <td>$150.00</td>
+            <td>Wearables</td>
+          </tr>
+          <tr role="row">
+            <td>P1003</td>
+            <td>USB Cable</td>
+            <td>150</td>
+            <td>$5.00</td>
+            <td>Accessories</td>
+          </tr>
+          <tr role="row">
+            <td>P1004</td>
+            <td>Bluetooth Speaker</td>
+            <td>30</td>
+            <td>$75.00</td>
+            <td>Electronics</td>
+          </tr>
+          <tr role="row">
+            <td>P1005</td>
+            <td>Wireless Mouse</td>
+            <td>45</td>
+            <td>$30.00</td>
+            <td>Accessories</td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
+    </section>
+
+    <!-- CUSTOMERS SECTION -->
+    <section data-section="customers" class="hidden" aria-label="Customers Section">
+      <h2 style="font-weight: 700; font-size: 1.5rem; margin-bottom:24px;">Customer List</h2>
+      <div style="overflow-x:auto;">
+      <table aria-label="List of customers" role="grid">
+        <thead>
+          <tr role="row">
+            <th scope="col">Customer ID</th>
+            <th scope="col">Name</th>
+            <th scope="col">Email</th>
+            <th scope="col">Phone</th>
+            <th scope="col">Total Spent</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr role="row">
+            <td>C1001</td>
+            <td>Jane Doe</td>
+            <td>jane@example.com</td>
+            <td>+1-555-0123</td>
+            <td>$1,250</td>
+          </tr>
+          <tr role="row">
+            <td>C1002</td>
+            <td>John Smith</td>
+            <td>john@example.com</td>
+            <td>+1-555-0456</td>
+            <td>$980</td>
+          </tr>
+          <tr role="row">
+            <td>C1003</td>
+            <td>Alice Johnson</td>
+            <td>alice@example.com</td>
+            <td>+1-555-0789</td>
+            <td>$720</td>
+          </tr>
+          <tr role="row">
+            <td>C1004</td>
+            <td>Michael Brown</td>
+            <td>michael@example.com</td>
+            <td>+1-555-0987</td>
+            <td>$580</td>
+          </tr>
+          <tr role="row">
+            <td>C1005</td>
+            <td>Lucy Gray</td>
+            <td>lucy@example.com</td>
+            <td>+1-555-0345</td>
+            <td>$440</td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
+    </section>
+
+    <!-- REPORTS SECTION -->
+    <!-- <section data-section="reports" class="hidden" aria-label="Reports Section">
+      <h2 style="font-weight: 700; font-size: 1.5rem; margin-bottom:24px;">Sales Reports</h2>
+      <div class="dashboard-grid">
+        <div class="card" aria-label="Monthly Sales Chart">
+          <h3>Monthly Sales</h3>
+          <canvas id="monthlySalesChart" class="chart-container" aria-describedby="monthlySalesDescription" role="img"></canvas>
+          <p id="monthlySalesDescription" class="subtext">Monthly sales in USD for the last 12 months.</p>
+        </div>
+        <div class="card" aria-label="Top Categories Chart">
+          <h3>Top Categories</h3>
+          <canvas id="topCategoriesChart" class="chart-container" aria-describedby="topCategoriesDescription" role="img"></canvas>
+          <p id="topCategoriesDescription" class="subtext">Sales distribution by category for the last 30 days.</p>
+        </div>
+      </div>
+    </section> -->
+
+    <!-- SETTINGS SECTION -->
+    <section data-section="settings" class="hidden" aria-label="Settings Section">
+      <h2 style="font-weight: 700; font-size: 1.5rem; margin-bottom:24px;">Settings</h2>
+      <div class="card">
+        <form id="settingsForm" aria-label="Application Settings Form">
+          <div style="margin-bottom:16px;">
+            <label for="storeName" style="font-weight:600;">Store Name</label><br/>
+            <input type="text" id="storeName" name="storeName" value="My POS Store" style="width: 100%; padding: 8px; margin-top:4px; font-size: 1rem; border-radius: 8px; border: 1px solid #cbd5e1;" />
+          </div>
+          <div style="margin-bottom:16px;">
+            <label for="currency" style="font-weight:600;">Currency</label><br/>
+            <select id="currency" name="currency" style="width: 100%; padding: 8px; margin-top:4px; font-size: 1rem; border-radius: 8px; border: 1px solid #cbd5e1;">
+              <option value="USD" selected>USD - US Dollar</option>
+              <option value="EUR">EUR - Euro</option>
+              <option value="IDR">IDR - Indonesian Rupiah</option>
+              <option value="JPY">JPY - Japanese Yen</option>
+            </select>
+          </div>
+          <div style="margin-bottom:16px;">
+            <label for="timezone" style="font-weight:600;">Time Zone</label><br/>
+            <select id="timezone" name="timezone" style="width: 100%; padding: 8px; margin-top:4px; font-size: 1rem; border-radius: 8px; border: 1px solid #cbd5e1;">
+              <option value="UTC" selected>UTC</option>
+              <option value="Asia/Jakarta">Asia/Jakarta</option>
+              <option value="America/New_York">America/New_York</option>
+              <option value="Europe/London">Europe/London</option>
+            </select>
+          </div>
+          <button type="submit" style="background:#2563eb; color:#fff; font-weight: 700; padding: 12px 20px; border-radius: 12px; border:none; cursor:pointer; font-size:1rem;">Save Settings</button>
+        </form>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
+<script>
+  (() => {
+    const navButtons = document.querySelectorAll('.nav-links button');
+    const sections = document.querySelectorAll('main section');
+    const content = document.getElementById('content');
+
+    function activateSection(sectionName) {
+      sections.forEach(section => {
+        const isTarget = section.dataset.section === sectionName;
+        section.classList.toggle('hidden', !isTarget);
+        section.classList.toggle('section-active', isTarget);
+        if(isTarget) {
+          section.setAttribute('tabindex', '0');
+          section.focus();
+        } else {
+          section.removeAttribute('tabindex');
+        }
+      });
+      navButtons.forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.section === sectionName);
+      });
+    }
+
+    navButtons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        activateSection(btn.dataset.section);
+      });
+      btn.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          activateSection(btn.dataset.section);
+        }
+      });
+    });
+
+    // Initialize to dashboard
+    activateSection('dashboard');
+
+    // Chart Data & Initialization
+    const monthlySalesCtx = document.getElementById('monthlySalesChart').getContext('2d');
+    const topCategoriesCtx = document.getElementById('topCategoriesChart').getContext('2d');
+
+    const monthlySalesChart = new Chart(monthlySalesCtx, {
+      type: 'line',
+      data: {
+        labels: ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+        datasets: [{
+          label: 'Sales ($)',
+          data: [11000, 14000, 9000, 15000, 17700, 16500, 19000, 22000, 24000, 20000, 23000, 25000],
+          borderColor: '#3b82f6',
+          backgroundColor: 'rgba(59,130,246,0.25)',
+          fill: true,
+          tension: 0.3,
+          pointRadius: 4,
+          pointHoverRadius: 6,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: { duration: 500 },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              color: '#334155',
+              font: { weight: '600' },
+            },
+            grid: { color: '#e0e7ff' }
+          },
+          x: {
+            ticks: {
+              color: '#334155',
+              font: { weight: '600' },
+            },
+            grid: { color: 'transparent' }
+          }
+        },
+        plugins: {
+          legend: {
+            labels: { color: '#334155', font: { weight: '700' } }
+          },
+          tooltip: {
+            mode: 'index',
+            intersect: false,
+          }
+        },
+        interaction: {
+          mode: 'nearest',
+          axis: 'x',
+          intersect: false
+        }
+      }
+    });
+
+    const topCategoriesChart = new Chart(topCategoriesCtx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Electronics', 'Wearables', 'Accessories', 'Other'],
+        datasets: [{
+          data: [45, 25, 20, 10],
+          backgroundColor: [
+            '#3b82f6',
+            '#6366f1',
+            '#a78bfa',
+            '#c4b5fd'
+          ],
+          hoverOffset: 30
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: { duration: 500 },
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { color: '#334155', font: { weight: '600' }, padding: 16 }
+          },
+          tooltip: {
+            callbacks: {
+              label(context) {
+                return context.label + ': ' + context.parsed + '%';
+              }
+            }
+          }
+        }
+      }
+    });
+
+    // Handle settings form submit: simple alert and prevent reload
+    const settingsForm = document.getElementById('settingsForm');
+    settingsForm.addEventListener('submit', e => {
+      e.preventDefault();
+      alert('Settings saved!');
+    });
+
+    // Accessibility: space toggle for button role menuitems also handled by keydown above
+
+  })();
+</script>
+</body>
+</html>
+
