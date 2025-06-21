@@ -9,6 +9,8 @@ import {
   FaSearch,
   FaExclamationTriangle,
 } from "react-icons/fa";
+import Swal from "sweetalert2";
+
 
 const List = ({ url }) => {
   const [list, setList] = useState([]);
@@ -37,19 +39,33 @@ const List = ({ url }) => {
     navigate(`/list/edit/${id}`);
   };
 
-  const removeFood = async (id) => {
+const removeFood = async (id) => {
+  const result = await Swal.fire({
+    title: "Yakin ingin menghapus?",
+    text: "Data makanan yang dihapus tidak bisa dikembalikan!",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#d33",
+    cancelButtonColor: "#3085d6",
+    confirmButtonText: "Ya, hapus!",
+    cancelButtonText: "Batal",
+  });
+
+  if (result.isConfirmed) {
     try {
       const response = await axios.post(`${url}/api/food/remove`, { id });
       if (response.data.success) {
-        toast.success(response.data.message);
+        Swal.fire("Berhasil!", response.data.message, "success");
         fetchList();
       } else {
-        toast.error("Gagal menghapus data!");
+        Swal.fire("Gagal!", "Gagal menghapus data!", "error");
       }
     } catch (error) {
-      toast.error("Terjadi kesalahan saat menghapus data!");
+      Swal.fire("Error!", "Terjadi kesalahan saat menghapus data!", "error");
     }
-  };
+  }
+};
+
 
   useEffect(() => {
     fetchList();

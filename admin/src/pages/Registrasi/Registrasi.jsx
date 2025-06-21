@@ -2,6 +2,8 @@ import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import axios from 'axios'
 import { Lock } from 'lucide-react'
+import Swal from 'sweetalert2';
+
 
 function Register({ url }) {
   const [username, setUsername] = useState('')
@@ -14,30 +16,48 @@ function Register({ url }) {
 
   const navigate = useNavigate()
 
-  const handleRegister = async (e) => {
-    e.preventDefault()
-    try {
-      const res = await axios.post(`${url}/api/user/register`, {
-        username,
-        email,
-        password,
-        namaLengkap,
-        jenisKelamin,
-        noTelepon,
-        alamat,
-      })
+const handleRegister = async (e) => {
+  e.preventDefault()
+  try {
+    const res = await axios.post(`${url}/api/user/register`, {
+      username,
+      email,
+      password,
+      namaLengkap,
+      jenisKelamin,
+      noTelepon,
+      alamat,
+    });
 
-      if (res.data.success) {
-        localStorage.setItem('token', res.data.token)
-        navigate('/login')
-      } else {
-        alert(res.data.message)
-      }
-    } catch (error) {
-      console.error(error)
-      alert('Registrasi gagal')
+    if (res.data.success) {
+      Swal.fire({
+        title: 'Berhasil!',
+        text: 'Registrasi berhasil. Silakan login.',
+        icon: 'success',
+        confirmButtonText: 'OK',
+      }).then(() => {
+        localStorage.setItem('token', res.data.token);
+        navigate('/login');
+      });
+    } else {
+      Swal.fire({
+        title: 'Gagal!',
+        text: res.data.message || 'Registrasi gagal.',
+        icon: 'error',
+        confirmButtonText: 'Coba Lagi',
+      });
     }
+  } catch (error) {
+    console.error(error);
+    Swal.fire({
+      title: 'Error!',
+      text: 'Terjadi kesalahan saat registrasi.',
+      icon: 'error',
+      confirmButtonText: 'Tutup',
+    });
   }
+};
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
