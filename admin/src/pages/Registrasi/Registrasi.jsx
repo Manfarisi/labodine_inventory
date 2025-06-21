@@ -80,8 +80,8 @@ function Register({ url }) {
           </div>
         </div>
 
-        <input type="text" placeholder="No. Telepon" value={noTelepon}
-          onChange={(e) => setNoTelepon(e.target.value)} className="w-full mb-4 px-4 py-2 border border-gray-300 rounded" required />
+        <input type="number" placeholder="No. Telepon" value={noTelepon}
+          onChange={(e) => setNoTelepon(e.target.value)} className="w-full mb-4 px-4 py-2 border border-gray-300 rounded" maxLength={13} required />
 
         <textarea placeholder="Alamat" value={alamat}
           onChange={(e) => setAlamat(e.target.value)} className="w-full mb-4 px-4 py-2 border border-gray-300 rounded" required />
