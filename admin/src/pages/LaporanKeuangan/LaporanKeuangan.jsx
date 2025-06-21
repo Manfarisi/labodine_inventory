@@ -5,6 +5,7 @@ import {
   FaTrashAlt,
   FaInbox,
   FaEdit,
+  FaTrophy,
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
@@ -19,8 +20,8 @@ const formatTanggal = (tanggal) => {
 function LaporanKeuangan({ url }) {
   const [pemasukan, setPemasukan] = useState([]);
   const [pengeluaran, setPengeluaran] = useState([]);
-  const [tanggalAwal, setTanggalAwal] = useState("");
-  const [tanggalAkhir, setTanggalAkhir] = useState("");
+  const [bulan, setBulan] = useState("");
+  const [tahun, setTahun] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -49,59 +50,42 @@ function LaporanKeuangan({ url }) {
     fetchPengeluaran();
   }, [url]);
 
-  const handleDeletePemasukan = async (id) => {
-    if (window.confirm("Yakin ingin menghapus data pemasukan ini?")) {
+  const handleDelete = async (id, jenis) => {
+    if (window.confirm("Yakin ingin menghapus data ini?")) {
+      const endpoint =
+        jenis === "pemasukan"
+          ? `${url}/api/checkout/hapusCheckout/${id}`
+          : `${url}/api/pengeluaran/hapusPengeluaran/${id}`;
       try {
-        const res = await fetch(`${url}/api/checkout/hapusCheckout/${id}`, {
-          method: "DELETE",
-        });
+        const res = await fetch(endpoint, { method: "DELETE" });
         const data = await res.json();
         if (data.success) {
-          setPemasukan((prev) => prev.filter((item) => item._id !== id));
+          if (jenis === "pemasukan")
+            setPemasukan((prev) => prev.filter((item) => item._id !== id));
+          else setPengeluaran((prev) => prev.filter((item) => item._id !== id));
         }
       } catch (err) {
-        console.error("Gagal menghapus pemasukan:", err);
+        console.error("Gagal menghapus:", err);
       }
     }
   };
 
-  const handleDeletePengeluaran = async (id) => {
-    if (window.confirm("Yakin ingin menghapus pengeluaran ini?")) {
-      try {
-        const res = await fetch(
-          `${url}/api/pengeluaran/hapusPengeluaran/${id}`,
-          {
-            method: "DELETE",
-          }
-        );
-        const data = await res.json();
-        if (data.success) {
-          setPengeluaran((prev) => prev.filter((item) => item._id !== id));
-        }
-      } catch (err) {
-        console.error("Gagal menghapus pengeluaran:", err);
-      }
-    }
-  };
-
-  const editPengeluaran = (id) => {
-    console.log("Edit pengeluaran dengan ID:", id);
-  };
-
-  const filterByDate = (data) => {
-    const awal = tanggalAwal ? new Date(tanggalAwal) : null;
-    const akhir = tanggalAkhir ? new Date(tanggalAkhir) : null;
+  const filterByMonthYear = (data) => {
     return data.filter((item) => {
-      const tgl = new Date(item.createdAt || item.tanggal);
-      return (!awal || tgl >= awal) && (!akhir || tgl <= akhir);
+      const date = new Date(item.createdAt || item.tanggal);
+      const matchesMonth = bulan
+        ? date.getMonth() + 1 === parseInt(bulan)
+        : true;
+      const matchesYear = tahun ? date.getFullYear() === parseInt(tahun) : true;
+      return matchesMonth && matchesYear;
     });
   };
 
-  const filteredPemasukan = filterByDate(pemasukan);
-  const filteredPengeluaran = filterByDate(pengeluaran);
-
-  const displayedPemasukan = filteredPemasukan.slice(0, 5);
+  const filteredPemasukan = filterByMonthYear(pemasukan);
+  const filteredPengeluaran = filterByMonthYear(pengeluaran);
+    const displayedPemasukan = filteredPemasukan.slice(0, 5);
   const displayedPengeluaran = filteredPengeluaran.slice(0, 5);
+
 
   const totalPemasukan = filteredPemasukan.reduce(
     (acc, item) => acc + item.total,
@@ -113,48 +97,86 @@ function LaporanKeuangan({ url }) {
   );
   const hasil = totalPemasukan - totalPengeluaran;
 
+  const pemasukanTertinggi = filteredPemasukan.reduce(
+    (max, item) => (item.total > (max?.total || 0) ? item : max),
+    null
+  );
+  const pengeluaranTertinggi = filteredPengeluaran.reduce(
+    (max, item) => (item.jumlah > (max?.jumlah || 0) ? item : max),
+    null
+  );
+
   return (
     <div className="p-6 space-y-10">
-      {/* Ringkasan */}
+      <div className="flex gap-4 items-center">
+        <select
+          value={bulan}
+          onChange={(e) => setBulan(e.target.value)}
+          className="border p-2 rounded"
+        >
+          <option value="">Semua Bulan</option>
+          {Array.from({ length: 12 }, (_, i) => (
+            <option key={i + 1} value={i + 1}>
+              {new Date(0, i).toLocaleString("id-ID", { month: "long" })}
+            </option>
+          ))}
+        </select>
+        <select
+          value={tahun}
+          onChange={(e) => setTahun(e.target.value)}
+          className="border p-2 rounded"
+        >
+          <option value="">Semua Tahun</option>
+          {[2023, 2024, 2025].map((y) => (
+            <option key={y} value={y}>
+              {y}
+            </option>
+          ))}
+        </select>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white p-4 rounded-lg shadow border-l-4 border-green-500">
-          <div className="flex justify-between items-center">
-            <div>
-              <p className="text-gray-500">Total Pemasukan</p>
-              <h2 className="text-xl font-bold text-green-600">
-                Rp {totalPemasukan.toLocaleString("id-ID")}
-              </h2>
-            </div>
-            <FaWallet className="text-green-600 text-3xl" />
-          </div>
+          <p className="text-gray-500">Total Pemasukan</p>
+          <h2 className="text-xl font-bold text-green-600">
+            Rp {totalPemasukan.toLocaleString("id-ID")}
+          </h2>
         </div>
         <div className="bg-white p-4 rounded-lg shadow border-l-4 border-red-500">
-          <div className="flex justify-between items-center">
-            <div>
-              <p className="text-gray-500">Total Pengeluaran</p>
-              <h2 className="text-xl font-bold text-red-600">
-                Rp {totalPengeluaran.toLocaleString("id-ID")}
-              </h2>
-            </div>
-            <FaFileAlt className="text-red-600 text-3xl" />
-          </div>
+          <p className="text-gray-500">Total Pengeluaran</p>
+          <h2 className="text-xl font-bold text-red-600">
+            Rp {totalPengeluaran.toLocaleString("id-ID")}
+          </h2>
         </div>
         <div className="bg-white p-4 rounded-lg shadow border-l-4 border-blue-500">
-          <div className="flex justify-between items-center">
-            <div>
-              <p className="text-gray-500">Hasil</p>
-              <h2
-                className={`text-xl font-bold ${
-                  hasil >= 0 ? "text-blue-600" : "text-red-600"
-                }`}
-              >
-                Rp {hasil.toLocaleString("id-ID")}
-              </h2>
-            </div>
-            <FaWallet className="text-blue-600 text-3xl" />
-          </div>
+          <p className="text-gray-500">Hasil</p>
+          <h2
+            className={`text-xl font-bold ${
+              hasil >= 0 ? "text-blue-600" : "text-red-600"
+            }`}
+          >
+            Rp {hasil.toLocaleString("id-ID")}
+          </h2>
+        </div>
+        <div className="bg-yellow-50 p-4 rounded-lg shadow border-l-4 border-yellow-500">
+          <p className="text-gray-500">Pemasukan Tertinggi</p>
+          <h2 className="text-md font-bold text-yellow-600">
+            {pemasukanTertinggi
+              ? `Rp ${pemasukanTertinggi.total.toLocaleString("id-ID")}`
+              : "-"}
+          </h2>
+        </div>
+        <div className="bg-pink-50 p-4 rounded-lg shadow border-l-4 border-pink-500">
+          <p className="text-gray-500">Pengeluaran Tertinggi</p>
+          <h2 className="text-md font-bold text-pink-600">
+            {pengeluaranTertinggi
+              ? `Rp ${pengeluaranTertinggi.jumlah.toLocaleString("id-ID")}`
+              : "-"}
+          </h2>
         </div>
       </div>
+
+      {/* Tabel Pemasukan dan Pengeluaran dapat dilanjutkan di bawah seperti pada kode Anda sebelumnya */}
 
       {/* Tabel Pemasukan */}
       <div className="overflow-x-auto rounded-xl shadow">

@@ -309,23 +309,51 @@ const Dashboard = ({ url }) => {
     </div>
 
     {/* Chart Produk Terlaris */}
-    <div className="bg-white p-6 shadow-xl rounded-3xl">
-      <h2 className="text-xl font-bold mb-4 text-blue-700">
-        Produk Paling Banyak Dibeli
-      </h2>
-      <ResponsiveContainer width="100%" height={300}>
-        <BarChart
-          data={topProducts.slice(0, 5)}
-          margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
-        >
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="name" />
-          <YAxis allowDecimals={false} />
-          <Tooltip />
-          <Bar dataKey="quantity" fill="#38bdf8" radius={[4, 4, 0, 0]} />
-        </BarChart>
-      </ResponsiveContainer>
-    </div>
+<div className="bg-white p-6 shadow-xl rounded-3xl">
+  <h2 className="text-xl font-bold mb-4 text-blue-700">
+    Produk Paling Banyak Dibeli
+  </h2>
+  <ResponsiveContainer width="100%" height={320}>
+    <BarChart
+      data={topProducts.slice(0, 5)}
+      margin={{ top: 20, right: 30, left: 10, bottom: 40 }}
+    >
+      <CartesianGrid strokeDasharray="3 3" />
+      <XAxis
+        dataKey="name"
+        tick={{ fontSize: 12 }}
+        angle={-15}
+        textAnchor="end"
+        interval={0}
+        height={60}
+      />
+      <YAxis
+        allowDecimals={false}
+        tick={{ fontSize: 12 }}
+        label={{
+          value: "Jumlah Dibeli",
+          angle: -90,
+          position: "insideLeft",
+          offset: 10,
+          style: { textAnchor: "middle" },
+        }}
+      />
+      <Tooltip
+        contentStyle={{ backgroundColor: "#f0f9ff", borderColor: "#38bdf8" }}
+        formatter={(value, name) => [`${value}x`, "Jumlah Beli"]}
+      />
+      <Legend verticalAlign="top" height={36} />
+      <Bar
+        dataKey="quantity"
+        name="Jumlah Beli"
+        fill="#38bdf8"
+        radius={[6, 6, 0, 0]}
+        barSize={40}
+      />
+    </BarChart>
+  </ResponsiveContainer>
+</div>
+
   </div>
 </div>
 
