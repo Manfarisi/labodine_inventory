@@ -39,6 +39,11 @@ app.use("/api/pengeluaran",pengeluaranRouter)
 app.use("/api/pemasukan",pemasukanRouter)
 
 
+// vercel
+app.use(cors({
+  origin: 'https://labodine-inventory-fe.vercel.app',
+  credentials: true,
+}));
 
 
 
