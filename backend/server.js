@@ -20,8 +20,11 @@ const port = process.env.PORT || 4000
 
 
 // middleware
-app.use(cors())
-app.use(express.json())
+// vercel
+app.use(cors({
+  origin: 'https://labodine-inventory-fe.vercel.app',
+  credentials: true,
+}));app.use(express.json())
 
 // api endpoint
 app.use("/images",express.static('uploads'))
@@ -39,11 +42,7 @@ app.use("/api/pengeluaran",pengeluaranRouter)
 app.use("/api/pemasukan",pemasukanRouter)
 
 
-// vercel
-app.use(cors({
-  origin: 'https://labodine-inventory-fe.vercel.app',
-  credentials: true,
-}));
+
 
 
 
