@@ -22,9 +22,22 @@ const port = process.env.PORT || 4000
 // middleware
 // vercel
 app.use(cors({
-  origin: 'https://labodine-inventory-fe.vercel.app',
-  credentials: true,
-}));app.use(express.json())
+  origin: function (origin, callback) {
+    const allowedOrigins = [
+      'https://labodine-inventory-fe.vercel.app',
+      'http://localhost:5173'
+    ];
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
+}));
+
+
+
 
 // api endpoint
 app.use("/images",express.static('uploads'))
