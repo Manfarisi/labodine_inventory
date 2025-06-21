@@ -38,8 +38,8 @@ const AbsenForm = () => {
 
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem("user"));
-    if (storedUser?.name) {
-      setFormData((prev) => ({ ...prev, username: storedUser.name }));
+    if (storedUser?.username) {
+      setFormData((prev) => ({ ...prev, username: storedUser.username }));
     }
     fetchUsers();
   }, []);

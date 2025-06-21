@@ -11,7 +11,7 @@ const DaftarPemasukan = ({ url }) => {
   const [filterBulan, setFilterBulan] = useState("");
   const [filterJenis, setFilterJenis] = useState("");
   const [search, setSearch] = useState("");
-const totalOrder = filtered.length;
+  const totalOrder = filtered.length;
 
   const fetchData = async () => {
     try {
@@ -42,10 +42,48 @@ const totalOrder = filtered.length;
     }
   };
 
+  const handleLihatStruk = (data) => {
+    const doc = new jsPDF();
+    const waktuTransaksi = new Date(data.createdAt).toLocaleString("id-ID", {
+      dateStyle: "full",
+      timeStyle: "short",
+    });
+
+    doc.setFontSize(14);
+    doc.text("Struk Pembayaran", 80, 10);
+    doc.setFontSize(10);
+    doc.text(`Tanggal: ${waktuTransaksi}`, 14, 20);
+    doc.text(`Kasir: ${data.kasir}`, 14, 26);
+    doc.text(`Pembeli: ${data.customerName || "-"}`, 14, 32);
+    doc.text(`Gender: ${data.customerGender || "-"}`, 14, 38);
+    doc.text(`Metode: ${data.paymentMethod}`, 14, 44);
+
+    autoTable(doc, {
+      startY: 50,
+      head: [["Produk", "Jumlah", "Harga Satuan", "Subtotal"]],
+      body: data.cartItems.map((item) => [
+        item.namaProduk,
+        item.quantity,
+        `Rp ${item.harga?.toLocaleString("id-ID") || "-"}`,
+        `Rp ${(item.harga * item.quantity)?.toLocaleString("id-ID") || "-"}`,
+      ]),
+    });
+
+    const subtotal = data.subtotal || data.cartItems.reduce((acc, i) => acc + i.harga * i.quantity, 0);
+    const discountAmount = (data.discountPercent / 100) * subtotal;
+    const total = data.total;
+
+    const y = doc.lastAutoTable.finalY + 10;
+    doc.text(`Subtotal: Rp ${subtotal.toLocaleString("id-ID")}`, 14, y);
+    doc.text(`Diskon: Rp ${discountAmount.toLocaleString("id-ID")}`, 14, y + 6);
+    doc.text(`Total: Rp ${total.toLocaleString("id-ID")}`, 14, y + 12);
+
+    doc.save(`struk-${data._id}.pdf`);
+  };
+
   const filterData = () => {
     let data = [...pemasukan];
 
-    // Filter bulan
     if (filterBulan) {
       const [year, month] = filterBulan.split("-");
       data = data.filter((item) => {
@@ -57,14 +95,12 @@ const totalOrder = filtered.length;
       });
     }
 
-    // Filter jenis pemasukan
     if (filterJenis) {
       data = data.filter((item) =>
         item.paymentMethod.toLowerCase().includes(filterJenis.toLowerCase())
       );
     }
 
-    // Filter nama produk
     if (search.trim()) {
       data = data.filter((item) =>
         item.cartItems.some((ci) =>
@@ -119,27 +155,10 @@ const totalOrder = filtered.length;
           </div>
         </div>
 
-        {/* Filter Section */}
         <div className="bg-blue-50 p-4 rounded-lg mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-          <input
-            type="month"
-            value={filterBulan}
-            onChange={(e) => setFilterBulan(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md"
-            placeholder="Filter Bulan"
-          />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md"
-            placeholder="Cari Nama Produk"
-          />
-          <select
-            value={filterJenis}
-            onChange={(e) => setFilterJenis(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md"
-          >
+          <input type="month" value={filterBulan} onChange={(e) => setFilterBulan(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-md" />
+          <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-md" placeholder="Cari Nama Produk" />
+          <select value={filterJenis} onChange={(e) => setFilterJenis(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-md">
             <option value="">Semua Metode</option>
             <option value="cash">Cash</option>
             <option value="transfer">Transfer</option>
@@ -147,43 +166,27 @@ const totalOrder = filtered.length;
           </select>
         </div>
 
-        {/* Total Summary */}
-{/* Total Summary */}
-<div className="bg-blue-100 border-l-4 border-blue-500 p-4 rounded-lg mb-6 space-y-2">
-  <div>
-    <p className="text-sm text-blue-700 font-medium">Total Pemasukan</p>
-    <h2 className="text-xl font-bold text-blue-600">
-      Rp {totalPemasukan.toLocaleString("id-ID")}
-    </h2>
-  </div>
-  <div>
-    <p className="text-sm text-blue-700 font-medium">Total Order</p>
-    <h2 className="text-xl font-bold text-blue-600">
-      {totalOrder.toLocaleString()} transaksi
-    </h2>
-  </div>
-</div>
+        <div className="bg-blue-100 border-l-4 border-blue-500 p-4 rounded-lg mb-6 space-y-2">
+          <div>
+            <p className="text-sm text-blue-700 font-medium">Total Pemasukan</p>
+            <h2 className="text-xl font-bold text-blue-600">Rp {totalPemasukan.toLocaleString("id-ID")}</h2>
+          </div>
+          <div>
+            <p className="text-sm text-blue-700 font-medium">Total Order</p>
+            <h2 className="text-xl font-bold text-blue-600">{totalOrder.toLocaleString()} transaksi</h2>
+          </div>
+        </div>
 
-
-        {/* Table */}
         <div className="overflow-x-auto rounded-xl shadow">
-          <button
-            onClick={exportToPDF}
-            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow mb-5"
-          >
+          <button onClick={exportToPDF} className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow mb-5">
             Download PDF
           </button>
 
           <table className="min-w-full text-sm text-gray-700">
             <thead>
               <tr className="bg-blue-100 text-blue-800">
-                {[
-                  "No", "Tanggal", "Metode", "Gender", "Diskon",
-                  "Jumlah Item", "Produk", "Total", "Aksi"
-                ].map((title) => (
-                  <th key={title} className="px-5 py-3 font-semibold text-center">
-                    {title}
-                  </th>
+                {["No", "Tanggal", "Metode", "Gender", "Diskon", "Jumlah Item", "Produk", "Total", "Aksi"].map((title) => (
+                  <th key={title} className="px-5 py-3 font-semibold text-center">{title}</th>
                 ))}
               </tr>
             </thead>
@@ -192,34 +195,26 @@ const totalOrder = filtered.length;
                 filtered.map((data, idx) => (
                   <tr key={data._id} className="border-b border-blue-200 hover:bg-blue-50">
                     <td className="px-5 py-3 text-center">{idx + 1}</td>
-                    <td className="px-5 py-3 text-center">
-                      {new Date(data.createdAt).toLocaleDateString("id-ID")}
-                    </td>
+                    <td className="px-5 py-3 text-center">{new Date(data.createdAt).toLocaleDateString("id-ID")}</td>
                     <td className="px-5 py-3 text-center capitalize">{data.paymentMethod}</td>
                     <td className="px-5 py-3 text-center">{data.customerGender || "-"}</td>
                     <td className="px-5 py-3 text-center">{data.discountPercent}%</td>
-                    <td className="px-5 py-3 text-center">
-                      {data.cartItems.reduce((acc, i) => acc + i.quantity, 0)}
-                    </td>
+                    <td className="px-5 py-3 text-center">{data.cartItems.reduce((acc, i) => acc + i.quantity, 0)}</td>
                     <td className="px-5 py-3 text-center">
                       <ul className="list-disc list-inside">
                         {data.cartItems.map((ci, i) => (
-                          <li key={i}>
-                            {ci.namaProduk} x {ci.quantity}
-                          </li>
+                          <li key={i}>{ci.namaProduk} x {ci.quantity}</li>
                         ))}
                       </ul>
                     </td>
-                    <td className="px-5 py-3 text-center text-green-600 font-semibold">
-                      Rp {data.total.toLocaleString("id-ID")}
-                    </td>
+                    <td className="px-5 py-3 text-center text-green-600 font-semibold">Rp {data.total.toLocaleString("id-ID")}</td>
                     <td className="px-5 py-3 text-center">
-                      <button
-                        onClick={() => handleDelete(data._id)}
-                        className="p-2 rounded-full bg-red-500 hover:bg-red-600 text-white shadow-md"
-                      >
-                        <FaTrashAlt />
-                      </button>
+                      <div className="flex justify-center gap-2">
+                        <button onClick={() => handleLihatStruk(data)} className="p-2 rounded-full bg-blue-500 hover:bg-blue-600 text-white shadow-md" title="Lihat Struk">🧾</button>
+                        <button onClick={() => handleDelete(data._id)} className="p-2 rounded-full bg-red-500 hover:bg-red-600 text-white shadow-md" title="Hapus">
+                          <FaTrashAlt />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -241,6 +236,5 @@ const totalOrder = filtered.length;
     </div>
   );
 };
-
 
 export default DaftarPemasukan;
