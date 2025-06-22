@@ -2,7 +2,7 @@ import axios from "axios";
 import { useState, useEffect } from "react";
 import { HiOutlineUser, HiOutlineClipboardList } from "react-icons/hi";
 
-const AbsenForm = () => {
+const AbsenForm = ({url}) => {
   const [formData, setFormData] = useState({
     username: "",
     status: "",
@@ -18,7 +18,7 @@ const AbsenForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("http://localhost:4000/api/pegawai/absen", formData);
+      await axios.post(`${url}/api/pegawai/absen`, formData);
       setFormData({ username: formData.username, status: "", keterangan: "" });
       alert("Absen berhasil disimpan!");
     } catch (err) {
@@ -29,7 +29,7 @@ const AbsenForm = () => {
 
   const fetchUsers = async () => {
     try {
-      const res = await axios.get("http://localhost:4000/api/user/user");
+      const res = await axios.get(`${url}/api/user/user`);
       setUsers(res.data);
     } catch (err) {
       console.error("Gagal ambil data user:", err);

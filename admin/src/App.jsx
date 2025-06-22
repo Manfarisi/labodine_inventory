@@ -34,7 +34,7 @@ import RekapAbsen from './pages/RekapAbsen/RekapAbsen';
 import DaftarKaryawan from './pages/DaftarKaryawan/DaftarKaryawan';
 
 const App = () => {
-  const url = "http://localhost:4000";
+const url = `${import.meta.env.VITE_API_URL}/api/pegawai/absen`;
 
   return (
     <div>
