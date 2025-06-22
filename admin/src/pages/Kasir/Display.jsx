@@ -4,7 +4,7 @@ import { FiPlus, FiMinus } from "react-icons/fi";
 import Checkout from "../Checkout/Pembayaran";
 import { NumericFormat } from 'react-number-format';
 
-const ProductCard = ({ product, onAddToCart }) => {
+const ProductCard = ({ product, onAddToCart , url}) => {
   const { namaProduk, keterangan, image, harga, hpp, jumlah } = product;
   const [count, setCount] = useState(0);
 
