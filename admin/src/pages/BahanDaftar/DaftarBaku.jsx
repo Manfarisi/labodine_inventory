@@ -17,7 +17,7 @@ const DaftarBaku = ({ url }) => {
 
   const fetchList = async () => {
     try {
-      const response = await axios.get(`${url}api/bahanBaku/daftarBahanBaku`);
+      const response = await axios.get(`${url}/api/bahanBaku/daftarBahanBaku`);
       if (response.data.success) {
         setList(response.data.data);
       } else {
