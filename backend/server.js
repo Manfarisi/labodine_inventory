@@ -21,21 +21,22 @@ const port = process.env.PORT || 4000
 
 // middleware
 // vercel
+const allowedOrigins = [
+  'https://labodine-inventory-fe.vercel.app',
+  'http://localhost:5173'
+];
+
 app.use(cors({
-  origin: function (origin, callback) {
-    const allowedOrigins = [
-      'https://labodine-inventory-fe.vercel.app',
-      'http://localhost:5173'
-    ];
+  origin: (origin, callback) => {
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
+      console.log('Blocked CORS request from:', origin);
       callback(new Error('Not allowed by CORS'));
     }
   },
   credentials: true
 }));
-
 
 
 
