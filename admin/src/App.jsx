@@ -36,8 +36,8 @@ import ProductList from './pages/Kasir/Display';
 import DaftarPelanggan from './pages/Pelanggan/Pelanggan';
 
 const App = () => {
-const url = `${import.meta.env.VITE_API_URL}`;
-
+const url = import.meta.env.VITE_API_URL.replace(/\/$/, "");
+daftar
   return (
     <div>
       <ToastContainer />
