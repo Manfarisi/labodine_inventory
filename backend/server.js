@@ -12,6 +12,7 @@ import cartRouter from './routes/cartRoute.js'
 import orderRouter from './routes/orderRoute.js'
 import checkoutRouter from './routes/checkoutRoute.js'
 import absenRouter from './routes/absenRoute.js'
+import pelangganRouter from './routes/pelangganRoute.js'
 
 // app config
 const app = express()
@@ -51,6 +52,7 @@ app.use("/api/cart",cartRouter)
 app.use("/api/order",orderRouter)
 app.use("/api/checkout",checkoutRouter)
 app.use("/api/pegawai",absenRouter)
+app.use("/api/pelanggan",pelangganRouter)
 
 
 app.use("/api/bahanBaku",bahanBakuRouter)

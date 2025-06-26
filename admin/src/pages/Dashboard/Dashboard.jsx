@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+// Dashboard.jsx (Versi Final, Responsive & Sinkron)
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import {
@@ -23,7 +24,6 @@ import {
   YAxis,
   CartesianGrid,
 } from "recharts";
-
 import LaporanKeuangan from "../LaporanKeuangan/LaporanKeuangan";
 
 const Dashboard = ({ url }) => {
@@ -38,106 +38,76 @@ const Dashboard = ({ url }) => {
   const [notifications, setNotifications] = useState([]);
   const [items, setItems] = useState([]);
   const [recentlyAdded, setRecentlyAdded] = useState([]);
+  const [selectedMonth, setSelectedMonth] = useState("");
+  const [selectedYear, setSelectedYear] = useState("");
+  const [genderData, setGenderData] = useState([]);
 
   const totalProduk = items.filter((item) => item.namaProduk).length;
   const totalBahan = items.filter((item) => item.namaBarang).length;
-  
-
-  const genderData = useMemo(
-    () => [
-      {
-        name: "pria",
-        value: filtered.filter(
-          (item) => item.customerGender?.toLowerCase() === "pria"
-        ).length,
-      },
-      {
-        name: "wanita",
-        value: filtered.filter(
-          (item) => item.customerGender?.toLowerCase() === "wanita"
-        ).length,
-      },
-    ],
-    [filtered]
-  );
-
-  const getTopProducts = (data) => {
-    const productMap = {};
-    data.forEach((item) => {
-      item.cartItems.forEach((ci) => {
-        if (productMap[ci.namaProduk]) {
-          productMap[ci.namaProduk] += ci.quantity;
-        } else {
-          productMap[ci.namaProduk] = ci.quantity;
-        }
-      });
-    });
-
-    const result = Object.entries(productMap).map(([name, qty]) => ({
-      name,
-      quantity: qty,
-    }));
-
-    result.sort((a, b) => b.quantity - a.quantity);
-    setTopProducts(result);
-  };
 
   const fetchCheckoutData = async () => {
     try {
       const res = await axios.get(`${url}/api/checkout/daftarCheckout`);
       if (res.data.success) {
-        setPemasukan(res.data.data);
-        setFiltered(res.data.data);
+        const allData = res.data.data;
+
+        const filteredData = allData.filter((item) => {
+          const tanggal = new Date(item.waktuTransaksi);
+          console.log("Transaksi:", item.waktuTransaksi, "| Tanggal:", tanggal);
+
+          const matchMonth =
+            selectedMonth === "" ||
+            tanggal.getMonth() + 1 === Number(selectedMonth);
+          const matchYear =
+            selectedYear === "" ||
+            tanggal.getFullYear() === Number(selectedYear);
+          return matchMonth && matchYear;
+        });
+        setPemasukan(filteredData);
+        setFiltered(filteredData);
       }
     } catch (err) {
-      console.error("Gagal ambil data checkout");
+      console.error("Gagal ambil data checkout", err);
+      toast.error("Gagal ambil data checkout!");
     }
   };
 
   const fetchList = async () => {
     try {
-      const [foodResponse, bahanBakuResponse] = await Promise.all([
+      const [foodRes, bahanRes] = await Promise.all([
         axios.get(`${url}/api/food/list`),
         axios.get(`${url}/api/bahanBaku/daftarBahanBaku`),
       ]);
 
-      if (foodResponse.data.success && bahanBakuResponse.data.success) {
-        const combinedData = [
-          ...foodResponse.data.data,
-          ...bahanBakuResponse.data.data,
-        ];
-
-        const sortedByCreatedAt = [...combinedData].sort(
+      if (foodRes.data.success && bahanRes.data.success) {
+        const combined = [...foodRes.data.data, ...bahanRes.data.data];
+        const sorted = combined.sort(
           (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
         );
-        setRecentlyAdded(sortedByCreatedAt.slice(0, 5));
-        setItems(combinedData);
+        setRecentlyAdded(sorted.slice(0, 5));
+        setItems(combined);
 
-        const lowStockNotifications = combinedData
-          .filter((item) => item.jumlah < 10)
-          .map((item) => {
-            const isProduk = !!item.namaProduk;
-            const isBarang = !!item.namaBarang;
-
+        const lowStock = combined
+          .filter((i) => i.jumlah < 10)
+          .map((i) => {
+            const isProduk = !!i.namaProduk;
+            const isBarang = !!i.namaBarang;
             return {
-              id: item._id,
+              id: i._id,
               type: isProduk ? "produk" : isBarang ? "bahan_baku" : "lainnya",
               message: isProduk
-                ? `Stok produk "${item.namaProduk}" tersisa ${item.jumlah}. Segera restok!`
+                ? `Stok produk \"${i.namaProduk}\" tersisa ${i.jumlah}`
                 : isBarang
-                ? `Stok bahan baku "${item.namaBarang}" tersisa ${item.jumlah}. Segera restok!`
-                : `Stok item tidak dikenal tersisa ${item.jumlah}.`,
+                ? `Stok bahan baku \"${i.namaBarang}\" tersisa ${i.jumlah}`
+                : `Stok item tidak dikenal tersisa ${i.jumlah}`,
               time: new Date().toLocaleString("id-ID"),
             };
           });
 
-        setNotifications(lowStockNotifications);
-      } else {
-        toast.error("Gagal mengambil data makanan atau bahan baku!");
+        setNotifications(lowStock);
       }
-    } catch (error) {
-      toast.error("Terjadi kesalahan saat mengambil data!");
-      console.error(error);
+    } catch (err) {
+      toast.error("Gagal mengambil data makanan/bahan baku");
     }
   };
 
@@ -165,14 +135,48 @@ const Dashboard = ({ url }) => {
 
   useEffect(() => {
     fetchList();
-    fetchCheckoutData();
   }, []);
 
   useEffect(() => {
-    filterData();
-    getTopProducts(pemasukan);
-  }, [filterData, pemasukan]);
+    fetchCheckoutData();
+  }, [selectedMonth, selectedYear]);
 
+  useEffect(() => {
+    filterData();
+  }, [filterData]);
+
+  useEffect(() => {
+    // Hitung ulang data saat `filtered` berubah
+    const genderMap = { Pria: 0, Wanita: 0 };
+    const produkMap = {};
+
+    filtered.forEach((item) => {
+      if (item.customerGender) {
+        genderMap[item.customerGender] =
+          (genderMap[item.customerGender] || 0) + 1;
+      }
+
+      item.cartItems.forEach((produk) => {
+        produkMap[produk.namaProduk] =
+          (produkMap[produk.namaProduk] || 0) + produk.quantity;
+      });
+    });
+
+    const genderDataFinal = Object.entries(genderMap).map(([name, value]) => ({
+      name,
+      value,
+    }));
+    const topProductsFinal = Object.entries(produkMap).map(
+      ([name, quantity]) => ({
+        name,
+        quantity,
+      })
+    );
+
+    setGenderData(genderDataFinal);
+    setTopProducts(topProductsFinal);
+    console.log("Filtered data", filtered);
+  }, [filtered]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
@@ -238,125 +242,181 @@ const Dashboard = ({ url }) => {
       {/* Content */}
       <div className="px-6 pb-6">
         {activeTab === "overview" && (
-<div className="space-y-10">
-  {/* Stats Cards */}
-  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-    {[
-      {
-        title: "Total Produk",
-        value: totalProduk.toLocaleString(),
-        icon: Package2,
-        color: "from-blue-500 to-blue-600",
-      },
-      {
-        title: "Total Bahan",
-        value: totalBahan.toLocaleString(),
-        icon: ShoppingCart,
-        color: "from-pink-500 to-pink-600",
-      },
-    ].map((stat, index) => (
-      <div
-        key={index}
-        className="bg-white/70 backdrop-blur-sm rounded-3xl p-6 border border-white/20 hover:shadow-2xl transition-all duration-300 hover:scale-105"
-      >
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-gray-500 text-sm font-medium">{stat.title}</p>
-            <p className="text-3xl font-extrabold text-gray-900 mt-1">
-              {stat.value}
-            </p>
+          <div className="space-y-10">
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[
+                {
+                  title: "Total Produk",
+                  value: totalProduk.toLocaleString(),
+                  icon: Package2,
+                  color: "from-blue-500 to-blue-600",
+                },
+                {
+                  title: "Total Bahan",
+                  value: totalBahan.toLocaleString(),
+                  icon: ShoppingCart,
+                  color: "from-pink-500 to-pink-600",
+                },
+              ].map((stat, index) => (
+                <div
+                  key={index}
+                  className="bg-white/70 backdrop-blur-sm rounded-3xl p-6 border border-white/20 hover:shadow-2xl transition-all duration-300 hover:scale-105"
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-gray-500 text-sm font-medium">
+                        {stat.title}
+                      </p>
+                      <p className="text-3xl font-extrabold text-gray-900 mt-1">
+                        {stat.value}
+                      </p>
+                    </div>
+                    <div
+                      className={`bg-gradient-to-r ${stat.color} p-4 rounded-2xl shadow-lg`}
+                    >
+                      <stat.icon className="w-6 h-6 text-white" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Charts Section */}
+            <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:space-x-4">
+              <div>
+                <label className="block text-sm font-semibold mb-1">
+                  Pilih Bulan:
+                </label>
+                <select
+                  value={selectedMonth}
+                  onChange={(e) => setSelectedMonth(e.target.value)}
+                  className="border rounded px-4 py-2"
+                >
+                  <option value="">Semua Bulan</option>
+                  {Array.from({ length: 12 }, (_, i) => (
+                    <option key={i} value={i + 1}>
+                      {new Date(0, i).toLocaleString("id-ID", {
+                        month: "long",
+                      })}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-1">
+                  Pilih Tahun:
+                </label>
+                <select
+                  value={selectedYear}
+                  onChange={(e) => setSelectedYear(Number(e.target.value))}
+                  className="border rounded px-4 py-2"
+                >
+                  {Array.from({ length: 5 }, (_, i) => {
+                    const year = new Date().getFullYear() - i;
+                    return (
+                      <option key={year} value={year}>
+                        {year}
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Diagram Gender */}
+              <div className="bg-white p-6 shadow-xl rounded-3xl">
+                <h2 className="text-xl font-bold mb-4 text-blue-700">
+                  Diagram Pembelian Berdasarkan Gender
+                </h2>
+                <ResponsiveContainer width="100%" height={300}>
+                  {genderData.length === 0 ? (
+                    <div className="flex items-center justify-center h-full text-gray-500 italic">
+                      Data tidak tersedia
+                    </div>
+                  ) : (
+                    <PieChart>
+                      <Pie
+                        data={genderData}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={100}
+                        label
+                        labelLine={false}
+                      >
+                        {genderData.map((entry, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={["#3490dc", "#f66d9b", "#a0aec0"][index]}
+                          />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                      <Legend />
+                    </PieChart>
+                  )}
+                </ResponsiveContainer>
+              </div>
+
+              {/* Chart Produk Terlaris */}
+              <div className="bg-white p-6 shadow-xl rounded-3xl">
+                <h2 className="text-xl font-bold mb-4 text-blue-700">
+                  Produk Paling Banyak Dibeli
+                </h2>
+                <ResponsiveContainer width="100%" height={320}>
+                  {topProducts.length === 0 ? (
+                    <div className="flex items-center justify-center h-full text-gray-500 italic">
+                      Data tidak tersedia
+                    </div>
+                  ) : (
+                    <BarChart
+                      data={topProducts}
+                      margin={{ top: 20, right: 30, left: 10, bottom: 40 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis
+                        dataKey="name"
+                        tick={{ fontSize: 12 }}
+                        angle={-15}
+                        textAnchor="end"
+                        interval={0}
+                        height={60}
+                      />
+                      <YAxis
+                        allowDecimals={false}
+                        tick={{ fontSize: 12 }}
+                        label={{
+                          value: "Jumlah Dibeli",
+                          angle: -90,
+                          position: "insideLeft",
+                          offset: 10,
+                          style: { textAnchor: "middle" },
+                        }}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: "#f0f9ff",
+                          borderColor: "#38bdf8",
+                        }}
+                        formatter={(value) => [`${value}x`, "Jumlah Beli"]}
+                      />
+                      <Legend verticalAlign="top" height={36} />
+                      <Bar
+                        dataKey="quantity"
+                        name="Jumlah Beli"
+                        fill="#38bdf8"
+                        radius={[6, 6, 0, 0]}
+                        barSize={40}
+                      />
+                    </BarChart>
+                  )}
+                </ResponsiveContainer>
+              </div>
+            </div>
           </div>
-          <div
-            className={`bg-gradient-to-r ${stat.color} p-4 rounded-2xl shadow-lg`}
-          >
-            <stat.icon className="w-6 h-6 text-white" />
-          </div>
-        </div>
-      </div>
-    ))}
-  </div>
-
-  {/* Charts Section */}
-  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-    {/* Diagram Gender */}
-    <div className="bg-white p-6 shadow-xl rounded-3xl">
-      <h2 className="text-xl font-bold mb-4 text-blue-700">
-        Diagram Pembelian Berdasarkan Gender
-      </h2>
-      <ResponsiveContainer width="100%" height={300}>
-        <PieChart>
-          <Pie
-            data={genderData}
-            dataKey="value"
-            nameKey="name"
-            cx="50%"
-            cy="50%"
-            outerRadius={100}
-            label
-            labelLine={false}
-          >
-            {genderData.map((entry, index) => (
-              <Cell
-                key={`cell-${index}`}
-                fill={["#3490dc", "#f66d9b", "#a0aec0"][index]}
-              />
-            ))}
-          </Pie>
-          <Tooltip />
-          <Legend />
-        </PieChart>
-      </ResponsiveContainer>
-    </div>
-
-    {/* Chart Produk Terlaris */}
-<div className="bg-white p-6 shadow-xl rounded-3xl">
-  <h2 className="text-xl font-bold mb-4 text-blue-700">
-    Produk Paling Banyak Dibeli
-  </h2>
-  <ResponsiveContainer width="100%" height={320}>
-    <BarChart
-      data={topProducts.slice(0, 5)}
-      margin={{ top: 20, right: 30, left: 10, bottom: 40 }}
-    >
-      <CartesianGrid strokeDasharray="3 3" />
-      <XAxis
-        dataKey="name"
-        tick={{ fontSize: 12 }}
-        angle={-15}
-        textAnchor="end"
-        interval={0}
-        height={60}
-      />
-      <YAxis
-        allowDecimals={false}
-        tick={{ fontSize: 12 }}
-        label={{
-          value: "Jumlah Dibeli",
-          angle: -90,
-          position: "insideLeft",
-          offset: 10,
-          style: { textAnchor: "middle" },
-        }}
-      />
-      <Tooltip
-        contentStyle={{ backgroundColor: "#f0f9ff", borderColor: "#38bdf8" }}
-        formatter={(value, name) => [`${value}x`, "Jumlah Beli"]}
-      />
-      <Legend verticalAlign="top" height={36} />
-      <Bar
-        dataKey="quantity"
-        name="Jumlah Beli"
-        fill="#38bdf8"
-        radius={[6, 6, 0, 0]}
-        barSize={40}
-      />
-    </BarChart>
-  </ResponsiveContainer>
-</div>
-
-  </div>
-</div>
-
         )}
 
         {activeTab === "LaporanKeuangan" && <LaporanKeuangan url={url} />}

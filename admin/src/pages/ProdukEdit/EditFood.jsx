@@ -190,11 +190,7 @@ const Edit = ({ url }) => {
             name="harga"
             placeholder="Contoh: Rp 20.000"
             value={formatRupiah(data.harga)}
-            onChange={(e) => {
-              const rawValue = e.target.value.replace(/\D/g, "");
-              setData((prevData) => ({ ...prevData, harga: rawValue }));
-            }}
-            required
+            readOnly
             className="w-full px-3 py-2 border rounded"
           />
         </div>

@@ -1,67 +1,45 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import Swal from "sweetalert2";
+import { useNavigate } from "react-router-dom";
+import DaftarProdukSederhana from "../DaftarProdukSederhana/DaftarProdukSederhana";
 
-const Checkout = ({ cartItems, onBack }) => {
+const Checkout = ({ cartItems, setCartItems, onBack }) => {
   const [paymentMethod, setPaymentMethod] = useState("");
   const [customerGender, setCustomerGender] = useState("");
   const [discountPercent, setDiscountPercent] = useState(0);
-  const [customerName, setCustomerName] = useState("");
+  const [customerNumber, setCustomerNumber] = useState("");
   const [uangDibayar, setUangDibayar] = useState("");
+  const [showDaftarProduk, setShowDaftarProduk] = useState(false);
 
   const navigate = useNavigate();
   const kasir = JSON.parse(localStorage.getItem("user"))?.username || "Kasir";
-  console.log(kasir)
 
   const formatRupiah = (angka) =>
-    new Intl.NumberFormat("id-ID", {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(angka);
+    new Intl.NumberFormat("id-ID", { minimumFractionDigits: 0 }).format(angka);
 
   const parseRupiah = (str) =>
     Number(str.replace(/\./g, "").replace(/[^0-9]/g, "")) || 0;
 
   const handleUangDibayarChange = (e) => {
     const raw = e.target.value.replace(/\D/g, "");
-    if (!raw) {
-      setUangDibayar("");
-      return;
+    if (!raw) return setUangDibayar("");
+    setUangDibayar(new Intl.NumberFormat("id-ID").format(Number(raw)));
+  };
+
+  const handleQuantityChange = (index, delta) => {
+    const updated = [...cartItems];
+    const newQty = updated[index].quantity + delta;
+
+    if (newQty > 0) {
+      updated[index].quantity = newQty;
+      setCartItems(updated);
+    } else {
+      // Hapus item jika quantity jadi 0
+      const filtered = updated.filter((_, i) => i !== index);
+      setCartItems(filtered);
     }
-    const formatted = new Intl.NumberFormat("id-ID").format(Number(raw));
-    setUangDibayar(formatted);
-  };
-
-  const rekeningDummy = {
-    transfer_bca: {
-      bank: "BCA",
-      norek: "1234567890",
-      nama: "PT. Contoh BCA",
-    },
-    transfer_mandiri: {
-      bank: "Mandiri",
-      norek: "9876543210",
-      nama: "PT. Contoh Mandiri",
-    },
-    transfer_bni: {
-      bank: "BNI",
-      norek: "1122334455",
-      nama: "PT. Contoh BNI",
-    },
-  };
-
-  const paymentLabels = {
-    tunai: "Tunai",
-    qris: "QRIS (All Payment)",
-    transfer_bca: "Transfer Bank BCA",
-    transfer_mandiri: "Transfer Bank Mandiri",
-    transfer_bni: "Transfer Bank BNI",
-    gopay: "GoPay",
-    ovo: "OVO",
-    shopeepay: "ShopeePay",
-    debit_kredit: "Kartu Debit/Kredit",
   };
 
   const subtotal = cartItems.reduce(
@@ -72,7 +50,6 @@ const Checkout = ({ cartItems, onBack }) => {
   const total = Math.max(subtotal - discountAmount, 0);
   const uangDibayarValue = parseRupiah(uangDibayar);
   const kembalian = paymentMethod === "tunai" ? uangDibayarValue - total : 0;
-
   const waktuTransaksi = new Date().toLocaleString("id-ID", {
     dateStyle: "full",
     timeStyle: "short",
@@ -85,13 +62,13 @@ const Checkout = ({ cartItems, onBack }) => {
     doc.setFontSize(10);
     doc.text(`Tanggal: ${waktuTransaksi}`, 14, 20);
     doc.text(`Kasir: ${kasir}`, 14, 26);
-    doc.text(`Pembeli: ${customerName || "-"}`, 14, 32);
+    doc.text(`Pembeli: ${customerNumber || "-"}`, 14, 32);
     doc.text(`Gender: ${customerGender}`, 14, 38);
-    doc.text(`Metode: ${paymentLabels[paymentMethod]}`, 14, 44);
+    doc.text(`Metode: ${paymentMethod}`, 14, 44);
 
     autoTable(doc, {
       startY: 50,
-      head: [["Produk", "Jumlah", "Harga Satuan", "Subtotal"]],
+      head: [["Produk", "Jumlah", "Harga", "Subtotal"]],
       body: cartItems.map((item) => [
         item.namaProduk,
         item.quantity,
@@ -104,29 +81,24 @@ const Checkout = ({ cartItems, onBack }) => {
     doc.text(`Subtotal: ${formatRupiah(subtotal)}`, 14, y);
     doc.text(`Diskon: ${formatRupiah(discountAmount)}`, 14, y + 6);
     doc.text(`Total: ${formatRupiah(total)}`, 14, y + 12);
-
     if (paymentMethod === "tunai") {
       doc.text(`Dibayar: ${formatRupiah(uangDibayarValue)}`, 14, y + 18);
       doc.text(`Kembalian: ${formatRupiah(kembalian)}`, 14, y + 24);
     }
-
     doc.save(`struk-${Date.now()}.pdf`);
   };
 
   const handleConfirm = async () => {
-    if (!paymentMethod) {
+    if (!paymentMethod)
       return Swal.fire("Pilih Metode Pembayaran!", "", "warning");
-    }
-
-    if (paymentMethod === "tunai" && uangDibayarValue < total) {
+    if (paymentMethod === "tunai" && uangDibayarValue < total)
       return Swal.fire("Uang tidak mencukupi", "", "error");
-    }
 
     const data = {
       cartItems,
       paymentMethod,
       customerGender,
-      customerName,
+      customerNumber,
       discountPercent,
       subtotal,
       total,
@@ -157,41 +129,74 @@ const Checkout = ({ cartItems, onBack }) => {
           )
         );
 
-        cetakStruk();
+        await fetch("http://localhost:4000/api/pelanggan/tambah", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            customerNumber,
+            customerGender,
+            totalTransaksi: total, // 🟡 Tambahkan ini
+          }),
+        });
 
-        Swal.fire({
-          icon: "success",
-          title: "Pembayaran Berhasil!",
-          html: `
-            Metode: <b>${paymentLabels[paymentMethod]}</b><br/>
-            Total: <b>${formatRupiah(total)}</b><br/>
-            ${
-              paymentMethod === "tunai"
-                ? `Kembalian: <b>${formatRupiah(kembalian)}</b><br/>`
-                : ""
-            }
-            Struk telah dicetak.
-          `,
-        }).then(() => navigate("/daftarPemasukan"));
+        cetakStruk();
+        Swal.fire(
+          "Berhasil",
+          "Pembayaran berhasil dan struk dicetak!",
+          "success"
+        ).then(() => navigate("/daftarPemasukan"));
       } else {
-        Swal.fire("Gagal Checkout", "Terjadi kesalahan saat menyimpan.", "error");
+        Swal.fire(
+          "Gagal Checkout",
+          "Terjadi kesalahan saat menyimpan.",
+          "error"
+        );
       }
     } catch (err) {
       console.error(err);
-      Swal.fire("Kesalahan Sistem", "Tidak dapat terhubung ke server.", "error");
+      Swal.fire(
+        "Kesalahan Sistem",
+        "Tidak dapat terhubung ke server.",
+        "error"
+      );
     }
   };
 
+  if (showDaftarProduk) {
+    return (
+      <DaftarProdukSederhana
+        onClose={() => setShowDaftarProduk(false)}
+        onAddToCart={(product) => {
+          const exist = cartItems.find((p) => p._id === product._id);
+          if (exist) {
+            setCartItems(
+              cartItems.map((p) =>
+                p._id === product._id
+                  ? { ...p, quantity: p.quantity + product.quantity }
+                  : p
+              )
+            );
+          } else {
+            setCartItems([...cartItems, product]);
+          }
+        }}
+        url="http://localhost:4000"
+      />
+    );
+  }
+
   return (
     <div className="max-w-3xl mx-auto p-6 bg-white rounded-xl shadow-lg mt-10">
-      <h2 className="text-2xl font-bold mb-4 text-center text-gray-800">Checkout</h2>
+      <h2 className="text-2xl font-bold mb-4 text-center text-gray-800">
+        Checkout
+      </h2>
 
       <div className="mb-4">
-        <label className="text-sm font-medium">Nama Pembeli:</label>
+        <label className="text-sm font-medium">Nomor Pembeli:</label>
         <input
           type="text"
-          value={customerName}
-          onChange={(e) => setCustomerName(e.target.value)}
+          value={customerNumber}
+          onChange={(e) => setCustomerNumber(e.target.value)}
           className="w-full border p-2 rounded mt-1"
           placeholder="Opsional"
         />
@@ -201,13 +206,38 @@ const Checkout = ({ cartItems, onBack }) => {
         <h3 className="font-semibold mb-2">Produk:</h3>
         <div className="space-y-2 text-sm">
           {cartItems.map((item, i) => (
-            <div key={i} className="border-b pb-2">
-              <p className="font-medium">{item.namaProduk}</p>
-              <p>Jumlah: {item.quantity}</p>
-              <p>Harga: {formatRupiah(item.harga)}</p>
+            <div
+              key={i}
+              className="border-b pb-2 flex justify-between items-center"
+            >
+              <div>
+                <p className="font-medium">{item.namaProduk}</p>
+                <p>Harga: {formatRupiah(item.harga)}</p>
+              </div>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => handleQuantityChange(i, -1)}
+                  className="px-2 py-1 bg-red-200 rounded hover:bg-red-300"
+                >
+                  -
+                </button>
+                <span>{item.quantity}</span>
+                <button
+                  onClick={() => handleQuantityChange(i, 1)}
+                  className="px-2 py-1 bg-green-200 rounded hover:bg-green-300"
+                >
+                  +
+                </button>
+              </div>
             </div>
           ))}
         </div>
+        <button
+          onClick={() => setShowDaftarProduk(true)}
+          className="mt-4 px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-sm rounded"
+        >
+          + Tambah Produk
+        </button>
       </div>
 
       <div className="mb-4">
@@ -216,7 +246,9 @@ const Checkout = ({ cartItems, onBack }) => {
           type="number"
           value={discountPercent}
           onChange={(e) =>
-            setDiscountPercent(Math.min(100, Math.max(0, Number(e.target.value))))
+            setDiscountPercent(
+              Math.min(100, Math.max(0, Number(e.target.value)))
+            )
           }
           className="ml-2 border px-2 py-1 rounded w-24 text-sm"
         />
@@ -261,34 +293,10 @@ const Checkout = ({ cartItems, onBack }) => {
           className="w-full border p-2 rounded"
         >
           <option value="">-- Pilih --</option>
-          {Object.keys(paymentLabels).map((key) => (
-            <option key={key} value={key}>
-              {paymentLabels[key]}
-            </option>
-          ))}
+          <option value="tunai">Tunai</option>
+          <option value="qris">QRIS</option>
+          <option value="transfer_bca">Transfer BCA</option>
         </select>
-
-        {paymentMethod === "qris" && (
-          <div className="mt-4 flex flex-col items-center">
-            <p className="text-sm font-medium mb-2">Scan QRIS:</p>
-            <img
-              src="https://via.placeholder.com/250x250.png?text=QRIS"
-              alt="QRIS"
-              className="w-48 h-48 border rounded"
-            />
-          </div>
-        )}
-
-        {paymentMethod.startsWith("transfer_") &&
-          rekeningDummy[paymentMethod] && (
-            <div className="mt-4 p-4 bg-gray-50 border rounded text-sm">
-              <p>
-                <b>{rekeningDummy[paymentMethod].bank}</b>
-              </p>
-              <p>No. Rek: {rekeningDummy[paymentMethod].norek}</p>
-              <p>Atas Nama: {rekeningDummy[paymentMethod].nama}</p>
-            </div>
-          )}
 
         {paymentMethod === "tunai" && (
           <div className="mt-4">
@@ -300,7 +308,7 @@ const Checkout = ({ cartItems, onBack }) => {
               value={uangDibayar}
               onChange={handleUangDibayarChange}
               className="w-full border p-2 rounded mt-1"
-              placeholder="Masukkan contoh: 200.000"
+              placeholder="Contoh: 200.000"
             />
             {uangDibayar && kembalian >= 0 && (
               <p className="text-sm mt-1 text-green-700">

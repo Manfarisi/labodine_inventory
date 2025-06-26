@@ -2,9 +2,9 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { FiPlus, FiMinus } from "react-icons/fi";
 import Checkout from "../Checkout/Pembayaran";
-import { NumericFormat } from 'react-number-format';
+import { NumericFormat } from "react-number-format";
 
-const ProductCard = ({ product, onAddToCart , url}) => {
+const ProductCard = ({ product, onAddToCart }) => {
   const { namaProduk, keterangan, image, harga, hpp, jumlah } = product;
   const [count, setCount] = useState(0);
 
@@ -20,7 +20,7 @@ const ProductCard = ({ product, onAddToCart , url}) => {
     <div className="bg-white/90 backdrop-blur-md rounded-2xl overflow-hidden shadow-xl transition-transform duration-500 ease-in-out transform hover:-translate-y-4 hover:scale-[1.02] relative cursor-pointer">
       <div className="relative h-48 overflow-hidden bg-gradient-to-tr from-gray-200 to-gray-100">
         <img
-          src={`${url}/images/${image}`}
+          src={`http://localhost:4000/images/${image}`}
           alt={namaProduk}
           className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
         />
@@ -77,7 +77,7 @@ const ProductCard = ({ product, onAddToCart , url}) => {
   );
 };
 
-const ProductList = ({url}) => {
+const ProductList = ({ url }) => {
   const [products, setProducts] = useState([]);
   const [cartItems, setCartItems] = useState([]);
   const [showCheckout, setShowCheckout] = useState(false);
@@ -87,21 +87,44 @@ const ProductList = ({url}) => {
   const [maxPrice, setMaxPrice] = useState("");
   const [sortOption, setSortOption] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [checkoutData, setCheckoutData] = useState([]);
 
   useEffect(() => {
-    axios
-      .get(`${url}/api/food/list`)
-      .then((response) => {
-        if (response.data.success) {
-          setProducts(response.data.data);
-        } else {
-          console.error("Gagal memuat data produk");
+    const fetchData = async () => {
+      try {
+        const [produkRes, checkoutRes] = await Promise.all([
+          axios.get("http://localhost:4000/api/food/list"),
+          axios.get("http://localhost:4000/api/checkout/daftarCheckout"),
+        ]);
+
+        if (produkRes.data.success) {
+          setProducts(produkRes.data.data);
         }
-      })
-      .catch((error) => {
-        console.error("Terjadi kesalahan saat mengambil data:", error);
-      });
+
+        if (checkoutRes.data.success) {
+          setCheckoutData(checkoutRes.data.data);
+        }
+      } catch (error) {
+        console.error("Terjadi kesalahan:", error);
+      }
+    };
+
+    fetchData();
   }, []);
+
+  // Hitung total pembelian tiap produk
+  const productSalesCount = {};
+
+  checkoutData.forEach((checkout) => {
+    checkout.cartItems.forEach((item) => {
+      const id = item._id;
+      if (!productSalesCount[id]) {
+        productSalesCount[id] = item.quantity;
+      } else {
+        productSalesCount[id] += item.quantity;
+      }
+    });
+  });
 
   const handleAddToCart = (item) => {
     const exist = cartItems.find((p) => p._id === item._id);
@@ -118,8 +141,13 @@ const ProductList = ({url}) => {
     }
   };
 
+  const enrichedProducts = products.map((p) => ({
+    ...p,
+    dibeli: productSalesCount[p._id] || 0,
+  }));
+
   // FILTERING
-  let filteredProducts = products
+  let filteredProducts = enrichedProducts
     .filter((p) => !selectedCategory || p.kategori === selectedCategory)
     .filter((p) => !minPrice || p.harga >= parseInt(minPrice))
     .filter((p) => !maxPrice || p.harga <= parseInt(maxPrice))
@@ -128,6 +156,8 @@ const ProductList = ({url}) => {
     );
 
   // SORTING
+  if (sortOption === "palinglaku")
+    filteredProducts.sort((a, b) => b.dibeli - a.dibeli);
   if (sortOption === "priceLowHigh")
     filteredProducts.sort((a, b) => a.harga - b.harga);
   if (sortOption === "priceHighLow")
@@ -139,6 +169,7 @@ const ProductList = ({url}) => {
     return (
       <Checkout
         cartItems={cartItems}
+        setCartItems={setCartItems}
         onBack={(clearedCart) => {
           setCartItems(clearedCart);
           setShowCheckout(false);
@@ -180,6 +211,7 @@ const ProductList = ({url}) => {
           className="border rounded-md px-4 py-2 w-full"
         >
           <option value="">Urutkan</option>
+          <option value="palinglaku">Paling Laku</option>
           <option value="priceLowHigh">Harga Termurah</option>
           <option value="priceHighLow">Harga Termahal</option>
           <option value="stokTinggi">Stok Tertinggi</option>
@@ -210,6 +242,17 @@ const ProductList = ({url}) => {
       </div>
 
       {/* Produk Grid */}
+      {/* Tombol Checkout */}
+      {cartItems.length > 0 && (
+        <div className="mt-8 flex justify-center mb-5">
+          <button
+            onClick={() => setShowCheckout(true)}
+            className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg shadow"
+          >
+            Lanjut ke Checkout ({cartItems.length} item)
+          </button>
+        </div>
+      )}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-6 max-w-7xl mx-auto">
         {filteredProducts.map((product) => (
           <ProductCard
@@ -219,18 +262,6 @@ const ProductList = ({url}) => {
           />
         ))}
       </div>
-
-      {/* Tombol Checkout */}
-      {cartItems.length > 0 && (
-        <div className="mt-8 flex justify-center">
-          <button
-            onClick={() => setShowCheckout(true)}
-            className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg shadow"
-          >
-            Lanjut ke Checkout ({cartItems.length} item)
-          </button>
-        </div>
-      )}
     </div>
   );
 };

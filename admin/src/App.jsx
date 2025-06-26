@@ -32,6 +32,8 @@ import AbsenList from './pages/DaftarAbsen/AbsenList';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
 import RekapAbsen from './pages/RekapAbsen/RekapAbsen';
 import DaftarKaryawan from './pages/DaftarKaryawan/DaftarKaryawan';
+import ProductList from './pages/Kasir/Display';
+import DaftarPelanggan from './pages/Pelanggan/Pelanggan';
 
 const App = () => {
 const url = `${import.meta.env.VITE_API_URL}`;
@@ -60,6 +62,12 @@ const url = `${import.meta.env.VITE_API_URL}`;
                 <Display url={url} />
               </ProtectedRoute>
             } />
+            <Route path="/daftarPelanggan" element={
+              <ProtectedRoute>
+                <DaftarPelanggan url={url} />
+              </ProtectedRoute>
+            } />
+
             <Route path="/laporanKeuangan" element={
               <ProtectedRoute>
                 <LaporanKeuangan url={url} />

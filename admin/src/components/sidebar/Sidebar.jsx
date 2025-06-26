@@ -22,6 +22,11 @@ const navItems = [
     href: "/",
     icon: LayoutDashboard,
   },
+    {
+    title: "Member",
+    href: "/daftarPelanggan",
+    icon: LayoutDashboard,
+  },
   {
     title: "kasir",
     href: "/kasir",
@@ -62,6 +67,7 @@ const navItems = [
     { title: "Daftar Karyawan", href: "/daftarKaryawan", allowedRoles: ["Admin"] },
     ],
   },
+  
 ];
 
 const Sidebar = () => {

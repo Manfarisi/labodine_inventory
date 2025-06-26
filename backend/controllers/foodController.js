@@ -1,5 +1,4 @@
 import foodModel from '../models/foodModel.js';
-import produkKeluarModel from '../models/produkKeluarModel.js';
 import fs from 'fs';
 
 // === FOOD (Stok Utama) ===
