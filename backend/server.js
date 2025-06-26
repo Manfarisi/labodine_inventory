@@ -31,9 +31,11 @@ const allowedOrigins = [
 ];
 
 app.use(cors({
+  methods: ["GET", "POST", "DELETE", "PUT"],
   origin: (origin, callback) => {
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
+
     } else {
       console.log('Blocked CORS request from:', origin);
       callback(new Error('Not allowed by CORS'));
