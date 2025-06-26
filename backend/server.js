@@ -8,7 +8,6 @@ import pengeluaranRouter from './routes/PengeluaranRoute.js'
 import pemasukanRouter from './routes/pemasukanRouter.js'
 import ProdukKeluarRouter from './routes/ProdukKeluar.js'
 import userRouter from './routes/userRoute.js'
-import cartRouter from './routes/cartRoute.js'
 import checkoutRouter from './routes/checkoutRoute.js'
 import absenRouter from './routes/absenRoute.js'
 import pelangganRouter from './routes/pelangganRoute.js'
@@ -49,8 +48,6 @@ app.use(cors({
 app.use("/images",express.static('uploads'))
 app.use("/api/food",foodRouter)
 app.use("/api/user",userRouter)
-app.use("/api/cart",cartRouter)
-app.use("/api/order",orderRouter)
 app.use("/api/checkout",checkoutRouter)
 app.use("/api/pegawai",absenRouter)
 app.use("/api/pelanggan",pelangganRouter)
