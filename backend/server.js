@@ -23,23 +23,23 @@ app.use(express.urlencoded({ extended: true }));
 
 // middleware
 // vercel
+
 const allowedOrigins = [
   'https://labodine-inventory-fe.vercel.app',
   'http://localhost:5173'
 ];
-
+// railway
 app.use(cors({
-  methods: ["GET", "POST", "DELETE", "PUT"],
   origin: (origin, callback) => {
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
-
     } else {
-      console.log('Blocked CORS request from:', origin);
+      console.log('Blocked CORS from:', origin);
       callback(new Error('Not allowed by CORS'));
     }
   },
-  credentials: true
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE"],
 }));
 
 
