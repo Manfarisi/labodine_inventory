@@ -6,14 +6,6 @@ const Navbar = () => {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
-  // Ambil data user dari localStorage
-  const user = JSON.parse(localStorage.getItem("user")); // <--- ini kuncinya
-  const name = user?.name || user?.username || "Admin";
-  const email = user?.email || "-";
-  const kategori = user?.kategori || "-";
-
-  console.log(JSON.parse(localStorage.getItem("user")));
-
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
