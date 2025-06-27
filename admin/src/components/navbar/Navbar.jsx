@@ -25,11 +25,6 @@ const Navbar = () => {
       <div className="flex flex-col gap-1">
         {token && (
           <>
-            <div className="px-4 py-2 text-sm text-gray-300 border-b border-gray-700">
-              Selamat datang, <span className="text-white font-medium">{name}</span><br />
-              <span className="text-xs text-gray-400">{email}</span><br />
-              <span className="text-xs text-gray-400 italic">{kategori}</span>
-            </div>
             <button
               onClick={handleLogout}
               className="mt-1 text-sm bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
