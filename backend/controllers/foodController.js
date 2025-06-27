@@ -136,7 +136,30 @@ const kurangiStokFood = async (req, res) => {
   }
 };
 
+const getFoodById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const produk = await foodModel.findById(id);
 
+    if (!produk) {
+      return res.status(404).json({
+        success: false,
+        message: "Produk tidak ditemukan",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: produk,
+    });
+  } catch (error) {
+    console.error("Gagal ambil detail produk:", error);
+    res.status(500).json({
+      success: false,
+      message: "Terjadi kesalahan server",
+    });
+  }
+};
 
 export {
     // Food
@@ -145,5 +168,6 @@ export {
     removeFood,
     editFood,
     editIdFood,
-    kurangiStokFood
+    kurangiStokFood,
+    getFoodById
 };

@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 import {
   Package2,
   Bell,
@@ -41,6 +42,8 @@ const Dashboard = ({ url }) => {
   const [selectedMonth, setSelectedMonth] = useState("");
   const [selectedYear, setSelectedYear] = useState("");
   const [genderData, setGenderData] = useState([]);
+  const navigate = useNavigate();
+
 
   const totalProduk = items.filter((item) => item.namaProduk).length;
   const totalBahan = items.filter((item) => item.namaBarang).length;
@@ -177,6 +180,17 @@ const Dashboard = ({ url }) => {
     setTopProducts(topProductsFinal);
     console.log("Filtered data", filtered);
   }, [filtered]);
+
+  const handleNotificationClick = (notification) => {
+  if (notification.type === "produk") {
+    navigate(`/produk/${notification.id}`);
+  } else if (notification.type === "bahan_baku") {
+    navigate(`/bahan/${notification.id}`);
+  } else {
+    toast.info("Tidak ada halaman tujuan untuk notifikasi ini.");
+  }
+};
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
@@ -429,16 +443,18 @@ const Dashboard = ({ url }) => {
               </h3>
               <div className="space-y-4">
                 {notifications.map((notification) => (
-                  <div
-                    key={notification.id}
-                    className={`p-4 rounded-2xl border-l-4 ${
-                      notification.type === "critical"
-                        ? "bg-red-50 border-red-500"
-                        : notification.type === "warning"
-                        ? "bg-yellow-50 border-yellow-500"
-                        : "bg-red-50 border-red-500"
-                    }`}
-                  >
+                 <div
+  key={notification.id}
+  onClick={() => handleNotificationClick(notification)}
+  className={`p-4 rounded-2xl border-l-4 cursor-pointer hover:shadow-md transition ${
+    notification.type === "critical"
+      ? "bg-red-50 border-red-500"
+      : notification.type === "warning"
+      ? "bg-yellow-50 border-yellow-500"
+      : "bg-red-50 border-red-500"
+  }`}
+>
+
                     <div className="flex items-start justify-between">
                       <div className="flex items-center space-x-3">
                         <div

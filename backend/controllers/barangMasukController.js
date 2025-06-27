@@ -342,11 +342,36 @@ const hapusBahanKeluar = async (req, res) => {
   }
 };
 
+ const getBahanById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const bahan = await bahanBakuModel.findById(id);
+
+    if (!bahan) {
+      return res.status(404).json({
+        success: false,
+        message: "Bahan baku tidak ditemukan",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: bahan,
+    });
+  } catch (error) {
+    console.error("Gagal ambil detail bahan baku:", error);
+    res.status(500).json({
+      success: false,
+      message: "Terjadi kesalahan server",
+    });
+  }
+};
 
 export {
   bahanBakuMasuk,
   daftarBahanBaku,
   hapusBahanBaku,
+  getBahanById,
   editBahanBaku,
   editIdBahanBaku,
   kurangiBahanBaku,
