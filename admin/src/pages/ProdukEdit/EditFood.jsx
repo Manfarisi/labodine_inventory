@@ -190,7 +190,6 @@ const Edit = ({ url }) => {
             name="harga"
             placeholder="Contoh: Rp 20.000"
             value={formatRupiah(data.harga)}
-            readOnly
             className="w-full px-3 py-2 border rounded"
           />
         </div>

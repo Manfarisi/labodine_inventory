@@ -56,7 +56,7 @@ const Dashboard = ({ url }) => {
 
         const filteredData = allData.filter((item) => {
           const tanggal = new Date(item.waktuTransaksi);
-          console.log("Transaksi:", item.waktuTransaksi, "| Tanggal:", tanggal);
+          // console.log("Transaksi:", item.waktuTransaksi, "| Tanggal:", tanggal);
 
           const matchMonth =
             selectedMonth === "" ||
@@ -178,14 +178,14 @@ const Dashboard = ({ url }) => {
 
     setGenderData(genderDataFinal);
     setTopProducts(topProductsFinal);
-    console.log("Filtered data", filtered);
+    // console.log("Filtered data", filtered);
   }, [filtered]);
 
   const handleNotificationClick = (notification) => {
   if (notification.type === "produk") {
-    navigate(`/produk/${notification.id}`);
+    navigate(`/list/edit/${notification.id}`);
   } else if (notification.type === "bahan_baku") {
-    navigate(`/bahan/${notification.id}`);
+    navigate(`/daftarBaku/edit/${notification.id}`);
   } else {
     toast.info("Tidak ada halaman tujuan untuk notifikasi ini.");
   }

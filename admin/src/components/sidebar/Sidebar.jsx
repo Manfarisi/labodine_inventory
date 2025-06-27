@@ -14,6 +14,7 @@ import {
   CheckIcon,
   ShoppingBag,
   File,
+  User2,
 } from 'lucide-react';
 
 const navItems = [
@@ -25,7 +26,7 @@ const navItems = [
     {
     title: "Member",
     href: "/daftarPelanggan",
-    icon: LayoutDashboard,
+    icon: Users,
   },
   {
     title: "kasir",
