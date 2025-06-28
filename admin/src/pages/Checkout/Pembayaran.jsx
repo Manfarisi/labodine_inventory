@@ -4,6 +4,7 @@ import autoTable from "jspdf-autotable";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
 import DaftarProdukSederhana from "../DaftarProdukSederhana/DaftarProdukSederhana";
+import DummyQris from "../DummyQris/DummyQris";
 
 const Checkout = ({ cartItems, setCartItems, onBack }) => {
   const [paymentMethod, setPaymentMethod] = useState("");
@@ -41,6 +42,20 @@ const Checkout = ({ cartItems, setCartItems, onBack }) => {
       setCartItems(filtered);
     }
   };
+
+
+  const dummyMetodePembayaran = [
+  { value: "tunai", label: "Tunai" },
+  { value: "qris", label: "QRIS (Scan Barcode)" },
+  { value: "transfer_bca", label: "Transfer Bank - BCA (1234567890 a.n PT ECOM)" },
+  { value: "transfer_bri", label: "Transfer Bank - BRI (0987654321 a.n PT ECOM)" },
+  { value: "transfer_bni", label: "Transfer Bank - BNI (1122334455 a.n PT ECOM)" },
+  { value: "transfer_mandiri", label: "Transfer Bank - Mandiri (2233445566 a.n PT ECOM)" },
+  { value: "ovo", label: "OVO (085712345678)" },
+  { value: "gopay", label: "GoPay (085798765432)" },
+  { value: "dana", label: "DANA (085765432109)" },
+  { value: "shopeepay", label: "ShopeePay (Hubungkan via QR / Akun)" },
+];
 
   const subtotal = cartItems.reduce(
     (acc, item) => acc + item.harga * item.quantity,
@@ -191,16 +206,22 @@ const Checkout = ({ cartItems, setCartItems, onBack }) => {
         Checkout
       </h2>
 
-      <div className="mb-4">
-        <label className="text-sm font-medium">Nomor Pembeli:</label>
-        <input
-          type="text"
-          value={customerNumber}
-          onChange={(e) => setCustomerNumber(e.target.value)}
-          className="w-full border p-2 rounded mt-1"
-          placeholder="Opsional"
-        />
-      </div>
+<div className="mb-4">
+  <label className="text-sm font-medium">Nomor Pembeli:</label>
+  <input
+    type="text"
+    value={customerNumber}
+    onChange={(e) => {
+      const value = e.target.value.replace(/\D/g, ""); // hanya angka
+      if (value.length <= 13) {
+        setCustomerNumber(value);
+      }
+    }}
+    maxLength={13}
+    className="w-full border p-2 rounded mt-1"
+    placeholder="Opsional"
+  />
+</div>
 
       <div className="mb-6">
         <h3 className="font-semibold mb-2">Produk:</h3>
@@ -292,11 +313,19 @@ const Checkout = ({ cartItems, setCartItems, onBack }) => {
           onChange={(e) => setPaymentMethod(e.target.value)}
           className="w-full border p-2 rounded"
         >
-          <option value="">-- Pilih --</option>
-          <option value="tunai">Tunai</option>
-          <option value="qris">QRIS</option>
-          <option value="transfer_bca">Transfer BCA</option>
+<option value="">-- Pilih --</option>
+  {dummyMetodePembayaran.map((metode) => (
+    <option key={metode.value} value={metode.value}>
+      {metode.label}
+    </option>
+  ))}
+
         </select>
+
+        {paymentMethod === "qris" && (
+  <DummyQris total={total} invoice={`INV-${Date.now()}`} />
+)}
+
 
         {paymentMethod === "tunai" && (
           <div className="mt-4">

@@ -160,7 +160,7 @@ const DaftarPemasukan = ({ url }) => {
           <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-md" placeholder="Cari Nama Produk" />
           <select value={filterJenis} onChange={(e) => setFilterJenis(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-md">
             <option value="">Semua Metode</option>
-            <option value="cash">Cash</option>
+            <option value="tunai">Tunai</option>
             <option value="transfer">Transfer</option>
             <option value="qris">QRIS</option>
           </select>

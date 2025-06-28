@@ -1,4 +1,3 @@
-// Dashboard.jsx (Versi Final, Responsive & Sinkron)
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -11,6 +10,7 @@ import {
   AlertTriangle,
   ShoppingCart,
   BarChart3,
+  Users,
 } from "lucide-react";
 import {
   PieChart,
@@ -43,10 +43,22 @@ const Dashboard = ({ url }) => {
   const [selectedYear, setSelectedYear] = useState("");
   const [genderData, setGenderData] = useState([]);
   const navigate = useNavigate();
-
+  const [jumlahMember, setJumlahMember] = useState(0);
 
   const totalProduk = items.filter((item) => item.namaProduk).length;
   const totalBahan = items.filter((item) => item.namaBarang).length;
+
+  const fetchJumlahMember = async () => {
+  try {
+    const res = await fetch(`${url}/api/pelanggan/daftar`);
+    const data = await res.json();
+    if (data.success) {
+      setJumlahMember(data.data.length);
+    }
+  } catch (error) {
+    console.error("Gagal mengambil jumlah member", error);
+  }
+};
 
   const fetchCheckoutData = async () => {
     try {
@@ -138,6 +150,7 @@ const Dashboard = ({ url }) => {
 
   useEffect(() => {
     fetchList();
+      fetchJumlahMember(); 
   }, []);
 
   useEffect(() => {
@@ -182,15 +195,14 @@ const Dashboard = ({ url }) => {
   }, [filtered]);
 
   const handleNotificationClick = (notification) => {
-  if (notification.type === "produk") {
-    navigate(`/list/edit/${notification.id}`);
-  } else if (notification.type === "bahan_baku") {
-    navigate(`/daftarBaku/edit/${notification.id}`);
-  } else {
-    toast.info("Tidak ada halaman tujuan untuk notifikasi ini.");
-  }
-};
-
+    if (notification.type === "produk") {
+      navigate(`/list/edit/${notification.id}`);
+    } else if (notification.type === "bahan_baku") {
+      navigate(`/daftarBaku/edit/${notification.id}`);
+    } else {
+      toast.info("Tidak ada halaman tujuan untuk notifikasi ini.");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
@@ -214,12 +226,14 @@ const Dashboard = ({ url }) => {
 
             <div className="flex items-center space-x-4">
               <div className="relative">
-                <Bell className="w-6 h-6 text-gray-600 cursor-pointer hover:text-blue-600 transition-colors" />
+                <Bell
+                  className="w-6 h-6 text-gray-600 cursor-pointer hover:text-blue-600 transition-colors"
+                  onClick={() => setActiveTab("notifications")}
+                />
                 <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                   {notifications.length}
                 </span>
               </div>
-              <Settings className="w-6 h-6 text-gray-600 cursor-pointer hover:text-blue-600 transition-colors" />
             </div>
           </div>
         </div>
@@ -272,6 +286,13 @@ const Dashboard = ({ url }) => {
                   icon: ShoppingCart,
                   color: "from-pink-500 to-pink-600",
                 },
+                {
+  title: "Total Member",
+  value: jumlahMember.toLocaleString(),
+  icon: Users, // ← butuh icon
+  color: "from-green-500 to-green-600",
+}
+
               ].map((stat, index) => (
                 <div
                   key={index}
@@ -387,7 +408,7 @@ const Dashboard = ({ url }) => {
                     </div>
                   ) : (
                     <BarChart
-                      data={topProducts}
+                      data={topProducts.slice(0, 5)} // 👈 hanya ambil 5 data teratas
                       margin={{ top: 20, right: 30, left: 10, bottom: 40 }}
                     >
                       <CartesianGrid strokeDasharray="3 3" />
@@ -443,18 +464,17 @@ const Dashboard = ({ url }) => {
               </h3>
               <div className="space-y-4">
                 {notifications.map((notification) => (
-                 <div
-  key={notification.id}
-  onClick={() => handleNotificationClick(notification)}
-  className={`p-4 rounded-2xl border-l-4 cursor-pointer hover:shadow-md transition ${
-    notification.type === "critical"
-      ? "bg-red-50 border-red-500"
-      : notification.type === "warning"
-      ? "bg-yellow-50 border-yellow-500"
-      : "bg-red-50 border-red-500"
-  }`}
->
-
+                  <div
+                    key={notification.id}
+                    onClick={() => handleNotificationClick(notification)}
+                    className={`p-4 rounded-2xl border-l-4 cursor-pointer hover:shadow-md transition ${
+                      notification.type === "critical"
+                        ? "bg-red-50 border-red-500"
+                        : notification.type === "warning"
+                        ? "bg-yellow-50 border-yellow-500"
+                        : "bg-red-50 border-red-500"
+                    }`}
+                  >
                     <div className="flex items-start justify-between">
                       <div className="flex items-center space-x-3">
                         <div
