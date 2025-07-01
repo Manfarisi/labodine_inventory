@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 
 const KeluarBarang = ({ url }) => {
   const [list, setList] = useState([]);
-  const [formStates, setFormStates] = useState({}); // per barang
+  const [formStates, setFormStates] = useState({});
 
   useEffect(() => {
     fetchList();
@@ -17,12 +17,11 @@ const KeluarBarang = ({ url }) => {
         setList(res.data.data);
         const today = new Date().toISOString().split("T")[0];
 
-        // Buat state awal untuk semua barang
         const initialStates = {};
         res.data.data.forEach((item) => {
           initialStates[item.namaBarang] = {
             jumlah: "",
-            satuan: item.satuan || "",
+            satuan: item.satuan?.trim().toLowerCase() || "",
             jenisPengeluaran: "",
             tanggal: today,
             keterangan: "",
@@ -49,6 +48,12 @@ const KeluarBarang = ({ url }) => {
 
   const handleSubmit = async (namaBarang) => {
     const form = formStates[namaBarang];
+
+    if (!form.jenisPengeluaran) {
+      toast.warn("Silakan pilih jenis pengeluaran");
+      return;
+    }
+
     const stokBarang =
       list.find((item) => item.namaBarang === namaBarang)?.jumlah || 0;
 
@@ -59,13 +64,24 @@ const KeluarBarang = ({ url }) => {
 
     const payload = {
       namaBarang,
-      ...form,
+      jumlah: Number(form.jumlah),
+      satuan: form.satuan?.trim(),
+      jenisPengeluaran: form.jenisPengeluaran,
+      tanggal: form.tanggal,
+      keterangan: form.keterangan,
     };
+
+    console.log("Payload:", payload);
 
     try {
       const res = await axios.post(
         `${url}/api/bahanBaku/kurangiBahanBaku`,
-        payload
+        payload,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
       );
       if (res.data.success) {
         toast.success(`Barang "${namaBarang}" berhasil dikurangi!`);
@@ -79,107 +95,97 @@ const KeluarBarang = ({ url }) => {
             keterangan: "",
           },
         }));
+        fetchList(); // Refresh stok
       } else {
         toast.error(res.data.message);
       }
-    } catch {
+    } catch (error) {
+      console.error("Gagal kirim:", error.response?.data || error.message);
       toast.error("Terjadi kesalahan saat mengirim data!");
     }
   };
 
   return (
-    <div className="bg-gradient-to-br from-gray-50 to-gray-200 min-h-screen py-10 px-4">
+    <div className="bg-gray-50 min-h-screen py-10 px-4">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold text-center mb-8 text-gray-800">
-          Barang Keluar
-        </h1>
+        <h1 className="text-3xl font-bold text-center mb-8">Barang Keluar</h1>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {list.map((item, i) => (
             <div
               key={i}
-              className="bg-white p-6 rounded-2xl shadow hover:shadow-lg transition space-y-4"
+              className="bg-white p-6 rounded-xl shadow space-y-4"
             >
-              <h2 className="text-xl font-semibold text-gray-800">
-                {item.namaBarang}
-              </h2>
+              <h2 className="text-lg font-semibold">{item.namaBarang}</h2>
 
-              <div className="space-y-2">
-                <input
-                  type="number"
-                  placeholder="Jumlah"
-                  value={formStates[item.namaBarang]?.jumlah || ""}
-                  onChange={(e) => {
-                    const value = parseInt(e.target.value) || 0;
-                    const max = item.jumlah;
-                    if (value <= max) {
-                      handleInputChange(item.namaBarang, "jumlah", value);
-                    } else {
-                      toast.warn(`Stok tidak mencukupi. Maksimal ${max}`);
-                    }
-                  }}
-                  max={item.jumlah}
-                  min={1}
-                  className="w-full px-3 py-2 border rounded-md"
-                  required
-                />
+              <input
+                type="number"
+                placeholder="Jumlah"
+                value={formStates[item.namaBarang]?.jumlah || ""}
+                onChange={(e) =>
+                  handleInputChange(
+                    item.namaBarang,
+                    "jumlah",
+                    parseInt(e.target.value) || 0
+                  )
+                }
+                className="w-full border p-2 rounded"
+              />
 
-                <input
-                  type="text"
-                  value={formStates[item.namaBarang]?.satuan || ""}
-                  disabled
-                  className="w-full px-3 py-2 bg-gray-100 border rounded-md"
-                />
+              <input
+                type="text"
+                value={formStates[item.namaBarang]?.satuan || ""}
+                disabled
+                className="w-full border bg-gray-100 p-2 rounded"
+              />
 
-                <select
-                  value={formStates[item.namaBarang]?.jenisPengeluaran || ""}
-                  onChange={(e) =>
-                    handleInputChange(
-                      item.namaBarang,
-                      "jenisPengeluaran",
-                      e.target.value
-                    )
-                  }
-                  className="w-full px-3 py-2 border rounded-md"
-                  required
-                >
-                  <option value="">-- Jenis Pengeluaran --</option>
-                  <option value="Produksi">Produksi</option>
-                  <option value="Rusak">Rusak</option>
-                  <option value="Lainya">Lainya</option>
-                </select>
+              <select
+                value={formStates[item.namaBarang]?.jenisPengeluaran || ""}
+                onChange={(e) =>
+                  handleInputChange(
+                    item.namaBarang,
+                    "jenisPengeluaran",
+                    e.target.value
+                  )
+                }
+                className="w-full border p-2 rounded"
+              >
+                <option value="">-- Jenis Pengeluaran --</option>
+                <option value="Produksi">Produksi</option>
+                <option value="Rusak">Rusak</option>
+                <option value="Lainya">Lainya</option>
+              </select>
 
-                <input
-                  type="date"
-                  value={formStates[item.namaBarang]?.tanggal || ""}
-                  onChange={(e) =>
-                    handleInputChange(
-                      item.namaBarang,
-                      "tanggal",
-                      e.target.value
-                    )
-                  }
-                  className="w-full px-3 py-2 border rounded-md"
-                />
+              <input
+                type="date"
+                value={formStates[item.namaBarang]?.tanggal || ""}
+                onChange={(e) =>
+                  handleInputChange(
+                    item.namaBarang,
+                    "tanggal",
+                    e.target.value
+                  )
+                }
+                className="w-full border p-2 rounded"
+              />
 
-                <textarea
-                  placeholder="Keterangan"
-                  value={formStates[item.namaBarang]?.keterangan || ""}
-                  onChange={(e) =>
-                    handleInputChange(
-                      item.namaBarang,
-                      "keterangan",
-                      e.target.value
-                    )
-                  }
-                  rows={2}
-                  className="w-full px-3 py-2 border rounded-md"
-                />
-              </div>
+              <textarea
+                placeholder="Keterangan"
+                value={formStates[item.namaBarang]?.keterangan || ""}
+                onChange={(e) =>
+                  handleInputChange(
+                    item.namaBarang,
+                    "keterangan",
+                    e.target.value
+                  )
+                }
+                rows={2}
+                className="w-full border p-2 rounded"
+              />
 
               <button
                 onClick={() => handleSubmit(item.namaBarang)}
-                className="w-full bg-blue-600 text-white font-semibold py-2 rounded-md hover:bg-blue-700 transition"
+                className="w-full bg-blue-600 text-white font-semibold py-2 rounded hover:bg-blue-700"
               >
                 Keluarkan Barang
               </button>

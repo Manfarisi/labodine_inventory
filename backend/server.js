@@ -6,7 +6,7 @@ import foodRouter from './routes/foodRoute.js'
 import bahanBakuRouter from './routes/bahanBakuRoute.js'
 import pengeluaranRouter from './routes/PengeluaranRoute.js'
 import pemasukanRouter from './routes/pemasukanRouter.js'
-import ProdukKeluarRouter from './routes/ProdukKeluar.js'
+// import ProdukKeluarRouter from './routes/ProdukKeluar.js'
 import userRouter from './routes/userRoute.js'
 import checkoutRouter from './routes/checkoutRoute.js'
 import absenRouter from './routes/absenRoute.js'
@@ -54,7 +54,7 @@ app.use("/api/pelanggan",pelangganRouter)
 
 
 app.use("/api/bahanBaku",bahanBakuRouter)
-app.use("/api/bahanKeluar",ProdukKeluarRouter)
+// app.use("/api/bahanKeluar",ProdukKeluarRouter)
 app.use("/api/pengeluaran",pengeluaranRouter)
 app.use("/api/pemasukan",pemasukanRouter)
 

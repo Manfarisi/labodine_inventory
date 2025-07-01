@@ -86,7 +86,6 @@ const EditBahanBaku = ({ url }) => {
             name="namaBarang"
             value={data.namaBarang}
             onChange={onChangeHandler}
-            readOnly
             className="w-full border rounded-md px-3 py-2 bg-gray-100 cursor-not-allowed"
           />
         </div>

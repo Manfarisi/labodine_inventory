@@ -80,12 +80,10 @@ const editBahanBaku = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Terjadi kesalahan saat memperbarui Bahan Baku",
-      });
+    res.status(500).json({
+      success: false,
+      message: "Terjadi kesalahan saat memperbarui Bahan Baku",
+    });
   }
 };
 
@@ -105,7 +103,8 @@ const editIdBahanBaku = async (req, res) => {
     bahanBaku.jumlah = req.body.jumlah || bahanBaku.jumlah;
     bahanBaku.keterangan = req.body.keterangan || bahanBaku.keterangan;
     bahanBaku.satuan = req.body.satuan || bahanBaku.satuan;
-    bahanBaku.jenisPemasukan = req.body.jenisPemasukan || bahanBaku.jenisPemasukan;
+    bahanBaku.jenisPemasukan =
+      req.body.jenisPemasukan || bahanBaku.jenisPemasukan;
     bahanBaku.tanggal = req.body.tanggal || bahanBaku.tanggal;
 
     await bahanBaku.save();
@@ -117,18 +116,19 @@ const editIdBahanBaku = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Terjadi kesalahan saat memperbarui Bahan Baku",
-      });
+    res.status(500).json({
+      success: false,
+      message: "Terjadi kesalahan saat memperbarui Bahan Baku",
+    });
   }
 };
 
 // controller barang keluar untuk barang baku
 const kurangiBahanBaku = async (req, res) => {
   try {
+    console.log("🟡 Request masuk ke kurangiBahanBaku");
+    console.log("📥 Data dari req.body:", req.body);
+
     const {
       namaBarang,
       jumlah,
@@ -138,32 +138,43 @@ const kurangiBahanBaku = async (req, res) => {
       tanggal,
     } = req.body;
 
-    // Validasi input dasar
-    if (!namaBarang || !jumlah || jumlah <= 0) {
+    const jumlahAngka = Number(jumlah);
+    if (!namaBarang || isNaN(jumlahAngka) || jumlahAngka <= 0) {
+      console.warn("⚠️ Validasi gagal: namaBarang/jumlah tidak valid");
       return res.status(400).json({
         success: false,
         message: "Nama barang dan jumlah harus diisi dengan benar",
       });
     }
 
-    // Cari bahan baku berdasarkan namaBarang
     const bahanBaku = await bahanBakuModel.findOne({ namaBarang });
     if (!bahanBaku) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Bahan Baku tidak ditemukan" });
-    }
-
-    // Cek apakah satuan sesuai (opsional, jika dibutuhkan validasi)
-    if (satuan && satuan !== bahanBaku.satuan) {
-      return res.status(400).json({
+      console.warn("❌ Bahan baku tidak ditemukan:", namaBarang);
+      return res.status(404).json({
         success: false,
-        message: `Satuan tidak sesuai. Harusnya '${bahanBaku.satuan}'`,
+        message: "Bahan Baku tidak ditemukan",
       });
     }
 
-    // Cek apakah jumlah yang diminta tidak melebihi stok
-    if (jumlah > bahanBaku.jumlah) {
+    console.log("✅ Bahan baku ditemukan:", bahanBaku);
+
+    const satuanInput = (satuan || "").trim();
+    const satuanAsli = (bahanBaku.satuan || "").trim();
+    console.log("🔍 Validasi satuan:", { satuanInput, satuanAsli });
+
+    if (satuanInput !== satuanAsli) {
+      console.warn("❌ Satuan tidak cocok");
+      return res.status(400).json({
+        success: false,
+        message: `Satuan tidak sesuai. Harusnya '${satuanAsli}'`,
+      });
+    }
+
+    if (jumlahAngka > bahanBaku.jumlah) {
+      console.warn("❌ Jumlah melebihi stok:", {
+        diminta: jumlahAngka,
+        tersedia: bahanBaku.jumlah,
+      });
       return res.status(400).json({
         success: false,
         message: "Jumlah melebihi stok yang tersedia",
@@ -171,20 +182,33 @@ const kurangiBahanBaku = async (req, res) => {
     }
 
     // Kurangi stok
-    bahanBaku.jumlah -= jumlah;
-
-    // Simpan perubahan stok
+    bahanBaku.jumlah -= jumlahAngka;
     await bahanBaku.save();
+    console.log("✅ Jumlah berhasil dikurangi, stok baru:", bahanBaku.jumlah);
 
-    // Catat log pengeluaran (menggunakan semua data)
-    await BahanBakuKeluarModel.create({
+    // Simpan log pengeluaran
+    const logData = {
       namaBarang,
-      jumlah,
-      satuan,
+      jumlah: jumlahAngka,
+      satuan: satuanInput,
       jenisPengeluaran,
       keterangan,
       tanggal: tanggal ? new Date(tanggal) : new Date(),
-    });
+    };
+
+    console.log("📝 Mencatat log pengeluaran:", logData);
+
+    try {
+      const result = await BahanBakuKeluarModel.create(logData);
+      console.log("✅ Log pengeluaran berhasil disimpan:", result);
+    } catch (error) {
+      console.error("❌ Gagal menyimpan log pengeluaran:", error.message);
+      console.error("🔎 DETAIL:", error);
+      return res.status(500).json({
+        success: false,
+        message: "Terjadi kesalahan saat mengurangi bahan baku (log gagal)",
+      });
+    }
 
     res.json({
       success: true,
@@ -192,7 +216,8 @@ const kurangiBahanBaku = async (req, res) => {
       data: bahanBaku,
     });
   } catch (error) {
-    console.error(error);
+    console.error("❌ ERROR SERVER:", error.message);
+    console.error("🔎 DETAIL:", error);
     res.status(500).json({
       success: false,
       message: "Terjadi kesalahan saat mengurangi bahan baku",
@@ -200,8 +225,11 @@ const kurangiBahanBaku = async (req, res) => {
   }
 };
 
+
+
 const daftarBahanKeluar = async (req, res) => {
   try {
+    
     const dataKeluar = await BahanBakuKeluarModel.find({}).sort({
       tanggal: -1,
     }); // urut terbaru dulu
@@ -258,12 +286,10 @@ const editBahanKeluar = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Terjadi kesalahan saat memperbarui data",
-      });
+    res.status(500).json({
+      success: false,
+      message: "Terjadi kesalahan saat memperbarui data",
+    });
   }
 };
 
@@ -281,7 +307,8 @@ const editIdBahanKeluar = async (req, res) => {
     // Hanya mengizinkan perubahan pada jumlah, keterangan, jenisPengeluaran, dan tanggal
     bahanKeluar.jumlah = req.body.jumlah || bahanKeluar.jumlah;
     bahanKeluar.keterangan = req.body.keterangan || bahanKeluar.keterangan;
-    bahanKeluar.jenisPengeluaran = req.body.jenisPengeluaran || bahanKeluar.jenisPengeluaran;
+    bahanKeluar.jenisPengeluaran =
+      req.body.jenisPengeluaran || bahanKeluar.jenisPengeluaran;
     bahanKeluar.tanggal = req.body.tanggal || bahanKeluar.tanggal;
 
     await bahanKeluar.save();
@@ -293,15 +320,12 @@ const editIdBahanKeluar = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Terjadi kesalahan saat memperbarui Bahan Keluar",
-      });
+    res.status(500).json({
+      success: false,
+      message: "Terjadi kesalahan saat memperbarui Bahan Keluar",
+    });
   }
 };
-
 
 const hapusBahanKeluar = async (req, res) => {
   try {
@@ -342,7 +366,7 @@ const hapusBahanKeluar = async (req, res) => {
   }
 };
 
- const getBahanById = async (req, res) => {
+const getBahanById = async (req, res) => {
   try {
     const { id } = req.params;
     const bahan = await bahanBakuModel.findById(id);

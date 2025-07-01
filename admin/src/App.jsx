@@ -33,8 +33,7 @@ import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute";
 import RekapAbsen from "./pages/RekapAbsen/RekapAbsen";
 import DaftarKaryawan from "./pages/DaftarKaryawan/DaftarKaryawan";
 import DaftarPelanggan from "./pages/Pelanggan/Pelanggan";
-import DetailProduk from "./pages/DetailProduk/DetailProduk";
-import DetailBahan from "./pages/DetailBahan/DetailBahan";
+
 
 const App = () => {
   const url = import.meta.env.VITE_API_URL.replace(/\/$/, "");
@@ -56,22 +55,6 @@ const App = () => {
               element={
                 <ProtectedRoute>
                   <Dashboard url={url} />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/produk/:id"
-              element={
-                <ProtectedRoute>
-                  <DetailProduk url={url} />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/bahan/:id"
-              element={
-                <ProtectedRoute>
-                  <DetailBahan url={url} />
                 </ProtectedRoute>
               }
             />

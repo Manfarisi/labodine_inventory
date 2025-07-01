@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 import { BsCalendar2CheckFill } from "react-icons/bs";
 import {
   FaBalanceScale,
@@ -13,6 +14,7 @@ import {
 } from "react-icons/fa";
 
 const BarangMasuk = ({ url }) => {
+  const navigate = useNavigate(); // ← Tambahkan ini
   const [data, setData] = useState({
     namaBarang: "",
     jumlah: "",
@@ -37,7 +39,9 @@ const BarangMasuk = ({ url }) => {
     try {
       const res = await axios.post(`${url}/api/bahanBaku/bahanBakuMasuk`, data);
       if (res.data.success) {
-        toast.success("Barang masuk berhasil ditambahkan!");
+        toast.success(
+          `Barang "${data.namaBarang}" sejumlah ${data.jumlah} ${data.satuan} berhasil ditambahkan!`
+        );
         setData({
           namaBarang: "",
           jumlah: "",
@@ -46,6 +50,9 @@ const BarangMasuk = ({ url }) => {
           keterangan: "",
           tanggal: new Date().toISOString().split("T")[0],
         });
+        setTimeout(() => {
+          navigate("/daftarBaku"); // ← Redirect ke halaman daftar bahan baku
+        }, 1000); // Delay untuk memberi waktu toast muncul
       } else {
         toast.error(res.data.message);
       }
@@ -108,6 +115,7 @@ const BarangMasuk = ({ url }) => {
             className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-400"
             required
           >
+            <option value="">-- Pilih Satuan --</option>
             <option value="kg">Kilogram (kg)</option>
             <option value="gram">Gram (g)</option>
             <option value="ons">Ons (ons)</option>
@@ -132,7 +140,6 @@ const BarangMasuk = ({ url }) => {
             <option value="bungkus">Bungkus</option>
             <option value="tray">Tray (telur / makanan)</option>
             <option value="cup">Cup (minuman/makanan)</option>
-            
           </select>
         </div>
 
@@ -149,9 +156,7 @@ const BarangMasuk = ({ url }) => {
             required
           >
             <option value="">-- Pilih Jenis --</option>
-            <option value="Bahan Baku">
-              Bahan Baku (Masuk untuk Produksi)
-            </option>
+            <option value="Bahan Baku">Bahan Baku (Masuk untuk Produksi)</option>
             <option value="Produk Hasil">Bahan Pendukung</option>
           </select>
         </div>
@@ -171,7 +176,7 @@ const BarangMasuk = ({ url }) => {
           />
         </div>
 
-        {/* Keterangan (full width) */}
+        {/* Keterangan */}
         <div className="md:col-span-2">
           <label className=" mb-1 font-medium text-gray-700 flex items-center gap-2">
             <FaCommentDots /> Keterangan
