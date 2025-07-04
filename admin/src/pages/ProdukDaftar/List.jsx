@@ -114,7 +114,7 @@ const filteredList = list.filter((item) => {
             <FaExclamationTriangle className="w-5 h-5" />
             <p>
               Terdapat <strong>{lowStockItems.length}</strong> produk dengan
-              stok rendah. Segera lakukan penambahan stok!
+              persediaan rendah. Segera lakukan penambahan stok!
             </p>
           </div>
         )}
@@ -200,7 +200,7 @@ const filteredList = list.filter((item) => {
                         item.jumlah < 10 ? "text-red-600" : "text-green-600"
                       }`}
                     >
-                      {item.jumlah} Stock
+                      {item.jumlah} Persediaan
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500">
                       Rp {item.hpp?.toLocaleString("id-ID") || "-"}

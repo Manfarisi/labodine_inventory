@@ -11,7 +11,10 @@ const DaftarPemasukan = ({ url }) => {
   const [filterBulan, setFilterBulan] = useState("");
   const [filterJenis, setFilterJenis] = useState("");
   const [search, setSearch] = useState("");
-  const totalOrder = filtered.length;
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 15;
 
   const fetchData = async () => {
     try {
@@ -110,6 +113,7 @@ const DaftarPemasukan = ({ url }) => {
     }
 
     setFiltered(data);
+    setCurrentPage(1); // reset ke halaman pertama setelah filter
   };
 
   const exportToPDF = () => {
@@ -143,6 +147,12 @@ const DaftarPemasukan = ({ url }) => {
     filterData();
   }, [filterBulan, filterJenis, search, pemasukan]);
 
+  // Pagination logic
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const paginatedData = filtered.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+
   const totalPemasukan = filtered.reduce((acc, item) => acc + item.total, 0);
 
   return (
@@ -172,14 +182,14 @@ const DaftarPemasukan = ({ url }) => {
             <h2 className="text-xl font-bold text-blue-600">Rp {totalPemasukan.toLocaleString("id-ID")}</h2>
           </div>
           <div>
-            <p className="text-sm text-blue-700 font-medium">Total Order</p>
-            <h2 className="text-xl font-bold text-blue-600">{totalOrder.toLocaleString()} transaksi</h2>
+            <p className="text-sm text-blue-700 font-medium">Total Pesanan</p>
+            <h2 className="text-xl font-bold text-blue-600">{filtered.length.toLocaleString()} Pesanan</h2>
           </div>
         </div>
 
         <div className="overflow-x-auto rounded-xl shadow">
           <button onClick={exportToPDF} className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow mb-5">
-            Download PDF
+            Unduh Laporan
           </button>
 
           <table className="min-w-full text-sm text-gray-700">
@@ -191,10 +201,10 @@ const DaftarPemasukan = ({ url }) => {
               </tr>
             </thead>
             <tbody>
-              {filtered.length > 0 ? (
-                filtered.map((data, idx) => (
+              {paginatedData.length > 0 ? (
+                paginatedData.map((data, idx) => (
                   <tr key={data._id} className="border-b border-blue-200 hover:bg-blue-50">
-                    <td className="px-5 py-3 text-center">{idx + 1}</td>
+                    <td className="px-5 py-3 text-center">{indexOfFirstItem + idx + 1}</td>
                     <td className="px-5 py-3 text-center">{new Date(data.createdAt).toLocaleDateString("id-ID")}</td>
                     <td className="px-5 py-3 text-center capitalize">{data.paymentMethod}</td>
                     <td className="px-5 py-3 text-center">{data.customerGender || "-"}</td>
@@ -231,6 +241,45 @@ const DaftarPemasukan = ({ url }) => {
               )}
             </tbody>
           </table>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex justify-center mt-6 space-x-2">
+              <button
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className={`px-3 py-1 rounded border ${
+                  currentPage === 1 ? "bg-gray-200 text-gray-400" : "bg-white hover:bg-blue-100"
+                }`}
+              >
+                Prev
+              </button>
+
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`px-3 py-1 rounded border ${
+                    currentPage === page
+                      ? "bg-blue-500 text-white"
+                      : "bg-white hover:bg-blue-100"
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+
+              <button
+                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className={`px-3 py-1 rounded border ${
+                  currentPage === totalPages ? "bg-gray-200 text-gray-400" : "bg-white hover:bg-blue-100"
+                }`}
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

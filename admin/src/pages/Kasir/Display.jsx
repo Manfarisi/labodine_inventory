@@ -223,7 +223,7 @@ const ProductList = ({ url }) => {
             decimalSeparator=","
             prefix="Rp "
             allowNegative={false}
-            placeholder="Harga Min"
+            placeholder="Harga Terendah"
             value={minPrice}
             onValueChange={(values) => setMinPrice(values.floatValue || "")}
             className="border rounded-md px-4 py-2 w-full"
@@ -233,7 +233,7 @@ const ProductList = ({ url }) => {
             decimalSeparator=","
             prefix="Rp "
             allowNegative={false}
-            placeholder="Harga Max"
+            placeholder="Harga Tertinggi"
             value={maxPrice}
             onValueChange={(values) => setMaxPrice(values.floatValue || "")}
             className="border rounded-md px-4 py-2 w-full"
@@ -249,7 +249,7 @@ const ProductList = ({ url }) => {
             onClick={() => setShowCheckout(true)}
             className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg shadow"
           >
-            Lanjut ke Checkout ({cartItems.length} item)
+            Masukan ke Keranjang ({cartItems.length} item)
           </button>
         </div>
       )}

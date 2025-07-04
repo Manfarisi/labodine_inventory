@@ -203,7 +203,7 @@ const Checkout = ({ cartItems, setCartItems, onBack }) => {
   return (
     <div className="max-w-3xl mx-auto p-6 bg-white rounded-xl shadow-lg mt-10">
       <h2 className="text-2xl font-bold mb-4 text-center text-gray-800">
-        Checkout
+        Keranjang Belanja
       </h2>
 
 <div className="mb-4">

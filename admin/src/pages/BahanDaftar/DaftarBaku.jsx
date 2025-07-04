@@ -2,7 +2,13 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import { FaInbox, FaPlus, FaEdit, FaTrashAlt, FaExclamationTriangle } from "react-icons/fa";
+import {
+  FaInbox,
+  FaPlus,
+  FaEdit,
+  FaTrashAlt,
+  FaExclamationTriangle,
+} from "react-icons/fa";
 
 const DaftarBaku = ({ url }) => {
   const [list, setList] = useState([]);
@@ -10,6 +16,10 @@ const DaftarBaku = ({ url }) => {
   const [filterTanggal, setFilterTanggal] = useState("");
   const [filterJenis, setFilterJenis] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [sortByStok, setSortByStok] = useState(""); // "terbesar" | "terkecil" | ""
+
+  const [filterPersediaan, setFilterPersediaan] = useState(""); // "", "rendah", "cukup"
+
   const totalBahan = list.length;
 
   const itemsPerPage = 8;
@@ -30,7 +40,9 @@ const DaftarBaku = ({ url }) => {
 
   const hapusBahanBaku = async (id) => {
     try {
-      const response = await axios.post(`${url}/api/bahanBaku/hapusBahanBaku`, { id });
+      const response = await axios.post(`${url}/api/bahanBaku/hapusBahanBaku`, {
+        id,
+      });
       if (response.data.success) {
         toast.success(response.data.message);
         fetchList();
@@ -57,16 +69,33 @@ const DaftarBaku = ({ url }) => {
     fetchList();
   }, []);
 
-  const filteredList = list.filter((item) => {
-    const cocokNama = item.namaBarang.toLowerCase().includes(searchTerm.toLowerCase());
+ const filteredList = list
+  .filter((item) => {
+    const cocokNama = item.namaBarang
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
     const cocokTanggal = filterTanggal
       ? new Date(item.tanggal).toISOString().slice(0, 10) === filterTanggal
       : true;
     const cocokJenis = filterJenis ? item.jenisPemasukan === filterJenis : true;
-    return cocokNama && cocokTanggal && cocokJenis;
+    const cocokPersediaan =
+      filterPersediaan === "rendah"
+        ? item.jumlah <= 5
+        : filterPersediaan === "cukup"
+        ? item.jumlah > 5
+        : true;
+
+    return cocokNama && cocokTanggal && cocokJenis && cocokPersediaan;
   });
 
+
   const lowStockItems = filteredList.filter((item) => item.jumlah < 10);
+
+  if (sortByStok === "terbesar") {
+  filteredList.sort((a, b) => b.jumlah - a.jumlah);
+} else if (sortByStok === "terkecil") {
+  filteredList.sort((a, b) => a.jumlah - b.jumlah);
+}
 
   // Pagination
   const totalPages = Math.ceil(filteredList.length / itemsPerPage);
@@ -87,8 +116,12 @@ const DaftarBaku = ({ url }) => {
       <div className="bg-white shadow rounded-xl p-6">
         <div className="flex justify-between items-start mb-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-800">Daftar Barang Masuk</h1>
-            <p className="text-sm text-gray-500">Manajemen data bahan baku masuk</p>
+            <h1 className="text-2xl font-bold text-gray-800">
+              Daftar Barang Masuk
+            </h1>
+            <p className="text-sm text-gray-500">
+              Manajemen data bahan baku masuk
+            </p>
           </div>
           <button
             onClick={() => navigate("/masuk")}
@@ -102,7 +135,8 @@ const DaftarBaku = ({ url }) => {
           <div className="bg-red-100 text-red-700 p-4 mb-4 rounded-md flex items-center space-x-3">
             <FaExclamationTriangle className="w-5 h-5" />
             <p>
-              Terdapat <strong>{lowStockItems.length}</strong> produk dengan stok rendah. Segera lakukan penambahan stok!
+              Terdapat <strong>{lowStockItems.length}</strong> produk dengan
+              stok rendah. Segera lakukan penambahan stok!
             </p>
           </div>
         )}
@@ -137,27 +171,43 @@ const DaftarBaku = ({ url }) => {
             className="px-3 py-2 border border-gray-300 rounded-md w-full md:w-1/4"
           >
             <option value="">Semua Jenis</option>
-            <option value="Pembelian">Pembelian</option>
-            <option value="Retur">Retur</option>
-            <option value="Donasi">Donasi</option>
+            <option value="Produk Hasil">Produk Hasil</option>
+            <option value="Bahan Baku">Bahan Baku</option>
+          </select>
+
+          <select
+            value={filterPersediaan}
+            onChange={(e) => {
+              setFilterPersediaan(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="px-3 py-2 border border-gray-300 rounded-md w-full md:w-1/4"
+          >
+            <option value="">Semua Persediaan</option>
+            <option value="rendah">Persediaan Hampir Habis (≤ 5)</option>
+            <option value="cukup">Persediaan Tercukupi (&gt; 5)</option>
           </select>
         </div>
 
         {/* Tabel */}
         <div className="overflow-x-auto">
-                    <div className="mb-4 text-gray-600">
-  Total Bahan Tersedia: <strong>{list.length}</strong>
-</div>
+          <div className="mb-4 text-gray-600">
+            Total Bahan Tersedia: <strong>{list.length}</strong>
+          </div>
           <table className="w-full text-sm text-left text-gray-700 border">
             <thead className="text-xs text-white uppercase bg-gray-700">
               <tr>
                 <th className="px-4 py-2 text-center text-base">Nama Barang</th>
                 <th className="px-4 py-2 text-center text-base">Jumlah</th>
                 <th className="px-4 py-2 text-center text-base">Satuan</th>
-                <th className="px-4 py-2 text-center text-base">Tanggal Masuk</th>
-                <th className="px-4 py-2 text-center text-base">Jenis Pemasukan</th>
+                <th className="px-4 py-2 text-center text-base">
+                  Tanggal Masuk
+                </th>
+                <th className="px-4 py-2 text-center text-base">
+                  Jenis Pemasukan
+                </th>
                 <th className="px-4 py-2 text-center text-base">Keterangan</th>
-                <th className="px-4 py-2 text-center text-base">Stock</th>
+                <th className="px-4 py-2 text-center text-base">Persediaan</th>
                 <th className="px-4 py-2 text-center text-base">Aksi</th>
               </tr>
             </thead>
@@ -165,21 +215,35 @@ const DaftarBaku = ({ url }) => {
               {currentItems.length > 0 ? (
                 currentItems.map((item) => (
                   <tr key={item._id} className="border-b">
-                    <td className="px-4 py-2 text-center text-base">{item.namaBarang}</td>
-                    <td className="px-4 py-2 text-center text-base">{item.jumlah}</td>
+                    <td className="px-4 py-2 text-center text-base">
+                      {item.namaBarang}
+                    </td>
+                    <td className="px-4 py-2 text-center text-base">
+                      {item.jumlah}
+                    </td>
                     <td className="px-4 py-2 text-center text-base">
                       <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">
                         {item.satuan}
                       </span>
                     </td>
-                    <td className="px-4 py-2 text-center text-base">{formatTanggal(item.tanggal)}</td>
-                    <td className="px-4 py-2 text-center text-base">{item.jenisPemasukan}</td>
-<td className="px-4 py-2 text-center text-base whitespace-pre-wrap">{item.keterangan}</td>
+                    <td className="px-4 py-2 text-center text-base">
+                      {formatTanggal(item.tanggal)}
+                    </td>
+                    <td className="px-4 py-2 text-center text-base">
+                      {item.jenisPemasukan}
+                    </td>
+                    <td className="px-4 py-2 text-center text-base whitespace-pre-wrap">
+                      {item.keterangan}
+                    </td>
                     <td className="px-4 py-2 text-center text-base">
                       {item.jumlah <= 5 ? (
-                        <span className="text-red-600 font-semibold">Stok hampir habis</span>
+                        <span className="text-red-600 font-semibold">
+                          Persediaan hampir habis
+                        </span>
                       ) : (
-                        <span className="text-green-600 font-semibold">Stok tercukupi</span>
+                        <span className="text-green-600 font-semibold">
+                          Persediaan tercukupi
+                        </span>
                       )}
                     </td>
                     <td className="px-4 py-2 text-center text-base">
@@ -205,7 +269,9 @@ const DaftarBaku = ({ url }) => {
                   <td colSpan="8" className="text-center py-10">
                     <div className="flex flex-col items-center gap-2 text-gray-500">
                       <FaInbox size={40} />
-                      <h3 className="text-lg font-semibold">Tidak ada data tersedia</h3>
+                      <h3 className="text-lg font-semibold">
+                        Tidak ada data tersedia
+                      </h3>
                       <p>Tambahkan data bahan baku untuk mulai.</p>
                       <button
                         onClick={() => navigate("/masuk")}
@@ -228,7 +294,9 @@ const DaftarBaku = ({ url }) => {
               onClick={() => changePage("prev")}
               disabled={currentPage === 1}
               className={`px-3 py-1 rounded-md border text-sm ${
-                currentPage === 1 ? "bg-gray-200 text-gray-500 cursor-not-allowed" : "bg-white hover:bg-gray-100"
+                currentPage === 1
+                  ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                  : "bg-white hover:bg-gray-100"
               }`}
             >
               Sebelumnya
@@ -240,7 +308,9 @@ const DaftarBaku = ({ url }) => {
               onClick={() => changePage("next")}
               disabled={currentPage === totalPages}
               className={`px-3 py-1 rounded-md border text-sm ${
-                currentPage === totalPages ? "bg-gray-200 text-gray-500 cursor-not-allowed" : "bg-white hover:bg-gray-100"
+                currentPage === totalPages
+                  ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                  : "bg-white hover:bg-gray-100"
               }`}
             >
               Selanjutnya

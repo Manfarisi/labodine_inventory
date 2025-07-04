@@ -126,27 +126,50 @@ const Dashboard = ({ url }) => {
     }
   };
 
-  const filterData = useCallback(() => {
-    let data = [...pemasukan];
-    if (search.trim()) {
-      data = data.filter((item) =>
-        item.cartItems.some((ci) =>
-          ci.namaProduk.toLowerCase().includes(search.toLowerCase())
-        )
-      );
-    }
-    if (startDate)
-      data = data.filter(
-        (item) => new Date(item.createdAt) >= new Date(startDate)
-      );
-    if (endDate)
-      data = data.filter(
-        (item) => new Date(item.createdAt) <= new Date(endDate)
-      );
-    if (filterMetode)
-      data = data.filter((item) => item.paymentMethod === filterMetode);
-    setFiltered(data);
-  }, [search, startDate, endDate, filterMetode, pemasukan]);
+const filterData = useCallback(() => {
+  let data = [...pemasukan];
+
+  if (search.trim()) {
+    data = data.filter((item) =>
+      item.cartItems.some((ci) =>
+        ci.namaProduk.toLowerCase().includes(search.toLowerCase())
+      )
+    );
+  }
+
+  if (startDate) {
+    data = data.filter(
+      (item) => new Date(item.createdAt) >= new Date(startDate)
+    );
+  }
+
+  if (endDate) {
+    data = data.filter(
+      (item) => new Date(item.createdAt) <= new Date(endDate)
+    );
+  }
+
+  if (filterMetode) {
+    data = data.filter((item) => item.paymentMethod === filterMetode);
+  }
+
+  // 🔥 Tambahkan filter berdasarkan bulan dan tahun
+  if (selectedMonth || selectedYear) {
+    data = data.filter((item) => {
+      const tanggal = new Date(item.waktuTransaksi);
+      const matchMonth =
+        selectedMonth === "" ||
+        tanggal.getMonth() + 1 === Number(selectedMonth);
+      const matchYear =
+        selectedYear === "" ||
+        tanggal.getFullYear() === Number(selectedYear);
+      return matchMonth && matchYear;
+    });
+  }
+
+  setFiltered(data);
+}, [search, startDate, endDate, filterMetode, selectedMonth, selectedYear, pemasukan]);
+
 
   useEffect(() => {
     fetchList();
@@ -249,7 +272,7 @@ const Dashboard = ({ url }) => {
               label: "Laporan Keuangan",
               icon: TrendingUp,
             },
-            { id: "notifications", label: "Notifications", icon: Bell },
+            { id: "Notifikasi", label: "Notifikasi", icon: Bell },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -456,7 +479,7 @@ const Dashboard = ({ url }) => {
 
         {activeTab === "LaporanKeuangan" && <LaporanKeuangan url={url} />}
 
-        {activeTab === "notifications" && (
+        {activeTab === "Notifikasi" && (
           <div className="space-y-6">
             <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-6 border border-white/20">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
