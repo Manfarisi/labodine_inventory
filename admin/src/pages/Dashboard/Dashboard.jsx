@@ -28,7 +28,7 @@ import {
 import LaporanKeuangan from "../LaporanKeuangan/LaporanKeuangan";
 
 const Dashboard = ({ url }) => {
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState("Ringkasan");
   const [search, setSearch] = useState("");
   const [filterMetode, setFilterMetode] = useState("");
   const [startDate, setStartDate] = useState("");
@@ -266,7 +266,7 @@ const filterData = useCallback(() => {
       <div className="px-6 py-4">
         <div className="flex space-x-1 bg-white/60 backdrop-blur-sm p-1 rounded-2xl border border-white/20">
           {[
-            { id: "overview", label: "Overview", icon: BarChart3 },
+            { id: "Ringkasan", label: "Ringkasan", icon: BarChart3 },
             {
               id: "LaporanKeuangan",
               label: "Laporan Keuangan",
@@ -292,7 +292,7 @@ const filterData = useCallback(() => {
 
       {/* Content */}
       <div className="px-6 pb-6">
-        {activeTab === "overview" && (
+        {activeTab === "Ringkasan" && (
           <div className="space-y-10">
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
