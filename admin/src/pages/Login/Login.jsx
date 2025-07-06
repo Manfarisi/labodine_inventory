@@ -8,20 +8,40 @@ function Login({ url }) {
   const [password, setPassword] = useState('')
   const navigate = useNavigate()
 
- const handleLogin = async (e) => {
+const handleLogin = async (e) => {
   e.preventDefault()
   try {
     const res = await axios.post(`${url}/api/user/login`, { email, password })
     if (res.data.success) {
       localStorage.setItem('token', res.data.token)
-      localStorage.setItem('user', JSON.stringify(res.data.user)) // ✅ Simpan user ke localStorage
+      localStorage.setItem('user', JSON.stringify(res.data.user))
       navigate('/')
     } else {
-      alert(res.data.message)
+      // 🔥 Tambahkan pengecekan alert spesifik
+      if (res.data.message === "Akun Anda belum disetujui oleh admin.") {
+        Swal.fire({
+          title: "Akun Belum Aktif!",
+          text: "Silakan tunggu admin menyetujui akun Anda.",
+          icon: "warning",
+          confirmButtonText: "Mengerti",
+        });
+      } else {
+        Swal.fire({
+          title: "Login Gagal!",
+          text: res.data.message || "Email atau password salah.",
+          icon: "error",
+          confirmButtonText: "Coba Lagi",
+        });
+      }
     }
   } catch (error) {
     console.error(error)
-    alert('Login failed')
+    Swal.fire({
+      title: "Terjadi Kesalahan!",
+      text: "Gagal login. Silakan coba lagi nanti.",
+      icon: "error",
+      confirmButtonText: "Tutup",
+    })
   }
 }
 

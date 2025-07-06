@@ -21,7 +21,6 @@ import List from "./pages/ProdukDaftar/List";
 import Edit from "./pages/ProdukEdit/EditFood";
 import Add from "./pages/TambahProduk/Add";
 import LaporanKeuangan from "./pages/LaporanKeuangan/LaporanKeuangan";
-import DaftarProdukKeluar from "./pages/ProdukKeluarDaftar/ProdukKeluarDaftar";
 import ProdukKeluar from "./pages/TambahProdukKeluar/TambahProdukKeluar";
 import EditProdukKeluar from "./pages/ProdukKeluarEdit/EditProdukKeluar";
 import Display from "./pages/Kasir/Display";
@@ -33,7 +32,7 @@ import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute";
 import RekapAbsen from "./pages/RekapAbsen/RekapAbsen";
 import DaftarKaryawan from "./pages/DaftarKaryawan/DaftarKaryawan";
 import DaftarPelanggan from "./pages/Pelanggan/Pelanggan";
-
+import ManajemenUser from "./pages/ManajemenUser/ManajemenUser";
 
 const App = () => {
   const url = import.meta.env.VITE_API_URL.replace(/\/$/, "");
@@ -74,7 +73,14 @@ const App = () => {
                 </ProtectedRoute>
               }
             />
-
+            <Route
+              path="/manajemenUser"
+              element={
+                <ProtectedRoute>
+                  <ManajemenUser url={url} />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/laporanKeuangan"
               element={
@@ -136,14 +142,6 @@ const App = () => {
               element={
                 <ProtectedRoute>
                   <Edit url={url} />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/daftarProdukKeluar"
-              element={
-                <ProtectedRoute>
-                  <DaftarProdukKeluar url={url} />
                 </ProtectedRoute>
               }
             />

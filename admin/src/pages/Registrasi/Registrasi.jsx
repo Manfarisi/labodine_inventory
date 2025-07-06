@@ -145,22 +145,20 @@ function Register({ url }) {
           </div>
         </div>
 
-<input
-  type="text"
-  inputMode="numeric"
-  pattern="[0-9]*"
-  placeholder="No. Telepon"
-  value={noTelepon}
-  onChange={(e) => {
-    const onlyNums = e.target.value.replace(/\D/g, "");
-    if (onlyNums.length <= 13) {
-      setNoTelepon(onlyNums);
-    }
-  }}
-  className="w-full mb-4 px-4 py-2 border border-gray-300 rounded"
-  required
-/>
-
+        <input
+          type="text"
+          inputMode="numeric"
+          pattern="[0-9]*"
+          maxLength={13} // ← batasi maksimal 13 karakter
+          placeholder="No. Telepon"
+          value={noTelepon}
+          onChange={(e) => {
+            const onlyNums = e.target.value.replace(/\D/g, "");
+            setNoTelepon(onlyNums);
+          }}
+          className="w-full mb-4 px-4 py-2 border border-gray-300 rounded"
+          required
+        />
 
         <textarea
           placeholder="Alamat"

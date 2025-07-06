@@ -12,6 +12,24 @@ const createToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET);
 };
 
+// Approve user
+const approveUser = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const user = await userModel.findById(id);
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+
+    user.status = "approved";
+    await user.save();
+
+    res.json({ success: true, message: "User approved successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Failed to approve user" });
+  }
+};
+
+
 // Login user
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
@@ -46,6 +64,13 @@ const loginUser = async (req, res) => {
     const user = await userModel.findOne({ email });
     if (!user) {
       return res.json({ success: false, message: "User doesn't exist" });
+    }
+
+    if (user.status !== "approved") {
+      return res.json({
+        success: false,
+        message: "Akun Anda belum disetujui oleh admin.",
+      });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
@@ -121,6 +146,7 @@ const registerUser = async (req, res) => {
       jenisKelamin,
       noTelepon,
       alamat,
+      status: "pending", // ⬅️ Tambahkan ini
     });
 
     const user = await newUser.save();
@@ -247,4 +273,5 @@ export {
   getAllUsers,
   updateUser,
   deleteUser,
+  approveUser
 };

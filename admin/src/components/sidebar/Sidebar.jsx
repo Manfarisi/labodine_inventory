@@ -35,7 +35,10 @@ const navItems = [
   },
       {
     title: "Bahan Mentah",
-    href: "/keluar",
+     submenu: [
+      { title: "Bahan Keluar", href: "/keluar",allowedRoles: ["Admin", "Pegawai"] },
+      { title: "Riwayat Bahan Keluar", href: "/daftarKeluar",allowedRoles: ["Admin", "Pegawai"] },
+    ],
     icon: File,
   },
   {

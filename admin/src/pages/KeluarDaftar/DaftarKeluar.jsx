@@ -8,17 +8,15 @@ const DaftarKeluar = ({ url }) => {
   const [list, setList] = useState([]);
   const [filtered, setFiltered] = useState([]);
   const [search, setSearch] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [bulan, setBulan] = useState(""); // bulan format "01" - "12"
+  const [tahun, setTahun] = useState("");
   const [jenisFilter, setJenisFilter] = useState("");
 
   const navigate = useNavigate();
 
   const fetchList = async () => {
     try {
-      const response = await axios.get(
-        `${url}/api/bahanBaku/daftarBarangTersisa`
-      );
+      const response = await axios.get(`${url}/api/bahanBaku/daftarBarangTersisa`);
       if (response.data.success) {
         setList(response.data.data);
         setFiltered(response.data.data);
@@ -32,10 +30,7 @@ const DaftarKeluar = ({ url }) => {
 
   const hapusBahanKeluar = async (id) => {
     try {
-      const response = await axios.post(
-        `${url}/api/bahanBaku/hapusBahanKeluar`,
-        { id }
-      );
+      const response = await axios.post(`${url}/api/bahanBaku/hapusBahanKeluar`, { id });
       if (response.data.success) {
         toast.success(response.data.message);
         fetchList();
@@ -63,25 +58,26 @@ const DaftarKeluar = ({ url }) => {
   const filterData = () => {
     let data = [...list];
 
-    // Search by namaBarang
     if (search.trim()) {
       data = data.filter((item) =>
         item.namaBarang.toLowerCase().includes(search.toLowerCase())
       );
     }
 
-    // Filter tanggal
-    if (startDate) {
-      data = data.filter(
-        (item) => new Date(item.tanggal) >= new Date(startDate)
-      );
+    if (bulan) {
+      data = data.filter((item) => {
+        const tanggal = new Date(item.tanggal);
+        return String(tanggal.getMonth() + 1).padStart(2, "0") === bulan;
+      });
     }
 
-    if (endDate) {
-      data = data.filter((item) => new Date(item.tanggal) <= new Date(endDate));
+    if (tahun) {
+      data = data.filter((item) => {
+        const tanggal = new Date(item.tanggal);
+        return String(tanggal.getFullYear()) === tahun;
+      });
     }
 
-    // Filter jenis pengeluaran
     if (jenisFilter) {
       data = data.filter((item) => item.jenisPengeluaran === jenisFilter);
     }
@@ -95,30 +91,26 @@ const DaftarKeluar = ({ url }) => {
 
   useEffect(() => {
     filterData();
-  }, [search, startDate, endDate, jenisFilter, list]);
+  }, [search, bulan, tahun, jenisFilter, list]);
 
   const jenisOptions = [...new Set(list.map((item) => item.jenisPengeluaran))];
+
+  const tahunOptions = Array.from(
+    new Set(list.map((item) => new Date(item.tanggal).getFullYear()))
+  ).sort();
 
   return (
     <div className="p-6 bg-white min-h-screen">
       <div className="max-w-7xl mx-auto bg-white shadow-2xl rounded-2xl p-8 border border-blue-200">
         <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-blue-800">
-              📦 Daftar Barang Keluar
-            </h1>
+            <h1 className="text-3xl font-bold text-blue-800">📦 Daftar Barang Keluar</h1>
             <p className="text-gray-600">Manajemen stok barang keluar harian</p>
           </div>
-          <button
-            onClick={() => navigate("/keluar")}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg shadow-md"
-          >
-            <FaPlus /> Tambah Barang
-          </button>
         </div>
 
         {/* Filter & Search */}
-        <div className="bg-blue-50 p-4 rounded-lg mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="bg-blue-50 p-4 rounded-lg mb-6 grid grid-cols-1 md:grid-cols-5 gap-4">
           <div className="flex items-center gap-2">
             <FaSearch className="text-gray-500" />
             <input
@@ -129,20 +121,36 @@ const DaftarKeluar = ({ url }) => {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
+
+          <select
+            value={bulan}
+            onChange={(e) => setBulan(e.target.value)}
             className="px-3 py-2 border border-gray-300 rounded-md"
-            title="Tanggal Mulai"
-          />
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
+          >
+            <option value="">Semua Bulan</option>
+            {[
+              "01", "02", "03", "04", "05", "06",
+              "07", "08", "09", "10", "11", "12",
+            ].map((val, idx) => (
+              <option key={idx} value={val}>
+                {new Date(0, parseInt(val) - 1).toLocaleString("id-ID", { month: "long" })}
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={tahun}
+            onChange={(e) => setTahun(e.target.value)}
             className="px-3 py-2 border border-gray-300 rounded-md"
-            title="Tanggal Akhir"
-          />
+          >
+            <option value="">Semua Tahun</option>
+            {tahunOptions.map((th, idx) => (
+              <option key={idx} value={th}>
+                {th}
+              </option>
+            ))}
+          </select>
+
           <select
             value={jenisFilter}
             onChange={(e) => setJenisFilter(e.target.value)}
@@ -191,9 +199,7 @@ const DaftarKeluar = ({ url }) => {
                     <td className="px-5 py-3 font-medium text-center text-base">
                       {item.namaBarang}
                     </td>
-                    <td className="px-5 py-3 text-center text-base">
-                      {item.jumlah}
-                    </td>
+                    <td className="px-5 py-3 text-center text-base">{item.jumlah}</td>
                     <td className="px-5 py-3 text-center text-base">
                       <span className="bg-blue-200 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full">
                         {item.satuan}
