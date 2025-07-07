@@ -11,7 +11,7 @@ function VerifikasiUser({ url }) {
 
   const getPendingUsers = async () => {
     try {
-      const res = await axios.get(`${url}/api/user`);
+      const res = await axios.get(`${url}/api/user/user`);
       const pending = res.data.filter(
         (user) => user.kategori === "Pegawai" && user.status === "pending"
       );
@@ -63,7 +63,7 @@ function VerifikasiUser({ url }) {
                     onClick={() => handleApprove(user._id)}
                     className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
                   >
-                    ACC
+                    Terima
                   </button>
                 </td>
               </tr>

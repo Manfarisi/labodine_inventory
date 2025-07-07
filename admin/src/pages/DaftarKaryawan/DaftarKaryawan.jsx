@@ -9,7 +9,7 @@ const DaftarKaryawan = ({ url }) => {
   const fetchUsers = async () => {
     try {
       const res = await axios.get(`${url}/api/user/user`);
-const data = res.data.filter((user) => user.kategori === "Pegawai");
+      const data = res.data.filter((user) => user.kategori === "Pegawai");
       setUsers(data);
     } catch (error) {
       console.error("Gagal mengambil data pengguna:", error);
@@ -75,9 +75,11 @@ const data = res.data.filter((user) => user.kategori === "Pegawai");
                   <td className="p-3">
                     <span
                       className={`px-2 py-1 rounded text-white text-sm ${
-                        user.status === "aktif"
+                        user.status === "pending"
                           ? "bg-red-500"
-                          : "bg-green-500"
+                          : user.status === "Aktif"
+                          ? "bg-green-500"
+                          : "bg-gray-500"
                       }`}
                     >
                       {user.status}

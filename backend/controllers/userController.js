@@ -22,7 +22,7 @@ const approveUser = async (req, res) => {
         .status(404)
         .json({ success: false, message: "User not found" });
 
-    user.status = "approved";
+    user.status = "Aktif";
     await user.save();
 
     res.json({ success: true, message: "User approved successfully" });
