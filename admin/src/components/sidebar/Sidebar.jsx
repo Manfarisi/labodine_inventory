@@ -41,6 +41,7 @@ const navItems = [
   },
   {
     title: "Bahan Mentah",
+    icon: File,
     submenu: [
       {
         title: "Bahan Keluar",
@@ -53,11 +54,9 @@ const navItems = [
         allowedRoles: ["Admin", "Pegawai"],
       },
     ],
-    icon: File,
   },
   {
     title: "Produk",
-    href: "/produk",
     icon: Package,
     submenu: [
       {
@@ -74,7 +73,6 @@ const navItems = [
   },
   {
     title: "Transaksi",
-    href: "/transaksi",
     icon: ShoppingBasket,
     submenu: [
       {
@@ -91,7 +89,6 @@ const navItems = [
   },
   {
     title: "Absensi",
-    href: "/absens",
     icon: User,
     submenu: [
       { title: "Absensi", href: "/absen", allowedRoles: ["Admin", "Pegawai"] },
@@ -110,7 +107,7 @@ const Sidebar = () => {
   const location = useLocation();
   const currentPath = location.pathname;
   const user = JSON.parse(localStorage.getItem("user"));
-  const userRole = user?.kategori || "pegawai";
+  const userRole = user?.kategori || "Pegawai";
 
   const [openSubmenus, setOpenSubmenus] = useState({});
 
@@ -127,7 +124,6 @@ const Sidebar = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-800 text-white w-64 shadow-lg">
-      {/* Sidebar Header */}
       <div className="flex items-center justify-between h-14 px-4 border-b border-gray-700">
         <Link to="/" className="flex items-center gap-2 font-semibold text-xl">
           <ShoppingBasket className="h-6 w-6 text-orange-400" />
@@ -135,77 +131,91 @@ const Sidebar = () => {
         </Link>
       </div>
 
-      {/* Sidebar Content */}
       <div className="flex-1 overflow-y-auto p-4">
         <nav className="space-y-2">
-          {navItems.map((item) => {
-            const isParentActive =
-              isSubLinkActive(item.submenu) || isActiveLink(item.href);
-            return (
-              <div key={item.href || item.title}>
-                {item.submenu ? (
-                  <div>
-                    <button
-                      onClick={() => toggleSubmenu(item.href)}
-                      className={`flex items-center w-full p-2 rounded-md transition-colors duration-200
-                      ${
-                        isParentActive
+          {navItems
+            .filter((item) => {
+              // Untuk menu utama tanpa submenu
+              if (!item.submenu && item.allowedRoles) {
+                return item.allowedRoles.includes(userRole);
+              }
+
+              // Untuk menu dengan submenu: minimal ada 1 submenu yang boleh diakses
+              if (item.submenu) {
+                const accessibleSubmenu = item.submenu.filter((sub) =>
+                  sub.allowedRoles?.includes(userRole)
+                );
+                return accessibleSubmenu.length > 0;
+              }
+
+              return true;
+            })
+            .map((item) => {
+              const isParentActive =
+                isSubLinkActive(item.submenu) || isActiveLink(item.href);
+
+              return (
+                <div key={item.href || item.title}>
+                  {item.submenu ? (
+                    <div>
+                      <button
+                        onClick={() => toggleSubmenu(item.title)}
+                        className={`flex items-center w-full p-2 rounded-md transition-colors duration-200 ${
+                          isParentActive
+                            ? "bg-gray-700 text-white"
+                            : "hover:bg-gray-700 text-gray-300"
+                        }`}
+                      >
+                        <item.icon className="h-5 w-5 mr-3" />
+                        <span>{item.title}</span>
+                        <ChevronDown
+                          className={`ml-auto h-4 w-4 transition-transform ${
+                            openSubmenus[item.title] ||
+                            isSubLinkActive(item.submenu)
+                              ? "rotate-180"
+                              : ""
+                          }`}
+                        />
+                      </button>
+                      {(openSubmenus[item.title] ||
+                        isSubLinkActive(item.submenu)) && (
+                        <div className="ml-6 mt-1 space-y-1">
+                          {item.submenu
+                            .filter((subItem) =>
+                              subItem.allowedRoles?.includes(userRole)
+                            )
+                            .map((subItem) => (
+                              <Link
+                                key={subItem.href}
+                                to={subItem.href}
+                                className={`flex items-center p-2 rounded-md text-sm transition-colors duration-200 ${
+                                  isActiveLink(subItem.href)
+                                    ? "bg-gray-600 text-white"
+                                    : "hover:bg-gray-600 text-gray-400"
+                                }`}
+                              >
+                                {subItem.title}
+                              </Link>
+                            ))}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <Link
+                      to={item.href}
+                      className={`flex items-center p-2 rounded-md transition-colors duration-200 ${
+                        isActiveLink(item.href)
                           ? "bg-gray-700 text-white"
                           : "hover:bg-gray-700 text-gray-300"
                       }`}
                     >
                       <item.icon className="h-5 w-5 mr-3" />
                       <span>{item.title}</span>
-                      <ChevronDown
-                        className={`ml-auto h-4 w-4 transition-transform ${
-                          openSubmenus[item.href] ||
-                          isSubLinkActive(item.submenu)
-                            ? "rotate-180"
-                            : ""
-                        }`}
-                      />
-                    </button>
-                    {(openSubmenus[item.href] ||
-                      isSubLinkActive(item.submenu)) && (
-                      <div className="ml-6 mt-1 space-y-1">
-                        {item.submenu
-                          .filter((subItem) =>
-                            subItem.allowedRoles?.includes(userRole)
-                          )
-                          .map((subItem) => (
-                            <Link
-                              key={subItem.href || subItem.title}
-                              to={subItem.href}
-                              className={`flex items-center p-2 rounded-md text-sm transition-colors duration-200
-                              ${
-                                isActiveLink(subItem.href)
-                                  ? "bg-gray-600 text-white"
-                                  : "hover:bg-gray-600 text-gray-400"
-                              }`}
-                            >
-                              {subItem.title}
-                            </Link>
-                          ))}
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <Link
-                    to={item.href}
-                    className={`flex items-center p-2 rounded-md transition-colors duration-200
-                    ${
-                      isActiveLink(item.href)
-                        ? "bg-gray-700 text-white"
-                        : "hover:bg-gray-700 text-gray-300"
-                    }`}
-                  >
-                    <item.icon className="h-5 w-5 mr-3" />
-                    <span>{item.title}</span>
-                  </Link>
-                )}
-              </div>
-            );
-          })}
+                    </Link>
+                  )}
+                </div>
+              );
+            })}
         </nav>
       </div>
     </div>
