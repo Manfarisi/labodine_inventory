@@ -32,6 +32,7 @@ const navItems = [
     title: "Pegawai tunggu",
     href: "/manajemenUser",
     icon: Users,
+    allowedRoles: ["Admin"],
   },
   {
     title: "kasir",

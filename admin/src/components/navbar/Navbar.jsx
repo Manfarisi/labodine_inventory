@@ -5,6 +5,7 @@ import { assets } from "../../assets/assets";
 const Navbar = () => {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
+  const user = JSON.parse(localStorage.getItem("user")); // Ambil user dari localStorage
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -17,6 +18,9 @@ const Navbar = () => {
       <div className="flex flex-col gap-1">
         {token && (
           <>
+            <h1 className="text-lg font-semibold">
+              Hallo, {user?.username || "Pengguna"} 👋
+            </h1>
             <button
               onClick={handleLogout}
               className="mt-1 text-sm bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
@@ -36,4 +40,3 @@ const Navbar = () => {
 };
 
 export default Navbar;
-
