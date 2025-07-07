@@ -5,7 +5,14 @@ const userSchema = new mongoose.Schema(
     username: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
+    
     kategori: {
+      type: String,
+      enum: ["Admin", "Pegawai"],
+      required: true,
+    },
+    
+    status: {
       type: String,
       enum: ["pending", "approved", "rejected"],
       default: "pending",
@@ -21,15 +28,15 @@ const userSchema = new mongoose.Schema(
     noTelepon: { type: String },
     alamat: { type: String },
 
-    // Status dan audit
-    status: { type: String, enum: ["Aktif", "Nonaktif"], default: "Aktif" },
-    lastLogin: { type: Date }, // waktu terakhir login
+    // Audit
+    lastLogin: { type: Date },
   },
   {
-    timestamps: true, // createdAt & updatedAt
+    timestamps: true,
     minimize: false,
   }
 );
+
 
 const userModel = mongoose.models.user || mongoose.model("user", userSchema);
 export default userModel;

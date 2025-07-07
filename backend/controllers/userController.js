@@ -17,7 +17,10 @@ const approveUser = async (req, res) => {
   const { id } = req.params;
   try {
     const user = await userModel.findById(id);
-    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+    if (!user)
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
 
     user.status = "approved";
     await user.save();
@@ -28,7 +31,6 @@ const approveUser = async (req, res) => {
     res.status(500).json({ success: false, message: "Failed to approve user" });
   }
 };
-
 
 // Login user
 const loginUser = async (req, res) => {
@@ -154,6 +156,8 @@ const registerUser = async (req, res) => {
     res.json({ success: true, token });
   } catch (error) {
     console.error(error);
+    console.log("Data registrasi:", req.body);
+
     res.json({ success: false, message: "Error" });
   }
 };
@@ -273,5 +277,5 @@ export {
   getAllUsers,
   updateUser,
   deleteUser,
-  approveUser
+  approveUser,
 };
