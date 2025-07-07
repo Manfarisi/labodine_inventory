@@ -68,7 +68,7 @@ const loginUser = async (req, res) => {
       return res.json({ success: false, message: "User doesn't exist" });
     }
 
-    if (user.status !== "approved") {
+    if (user.status !== "Aktif") {
       return res.json({
         success: false,
         message: "Akun Anda belum disetujui oleh admin.",
