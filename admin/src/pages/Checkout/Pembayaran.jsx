@@ -43,19 +43,30 @@ const Checkout = ({ cartItems, setCartItems, onBack }) => {
     }
   };
 
-
   const dummyMetodePembayaran = [
-  { value: "tunai", label: "Tunai" },
-  { value: "qris", label: "QRIS (Scan Barcode)" },
-  { value: "transfer_bca", label: "Transfer Bank - BCA (1234567890 a.n PT ECOM)" },
-  { value: "transfer_bri", label: "Transfer Bank - BRI (0987654321 a.n PT ECOM)" },
-  { value: "transfer_bni", label: "Transfer Bank - BNI (1122334455 a.n PT ECOM)" },
-  { value: "transfer_mandiri", label: "Transfer Bank - Mandiri (2233445566 a.n PT ECOM)" },
-  { value: "ovo", label: "OVO (085712345678)" },
-  { value: "gopay", label: "GoPay (085798765432)" },
-  { value: "dana", label: "DANA (085765432109)" },
-  { value: "shopeepay", label: "ShopeePay (Hubungkan via QR / Akun)" },
-];
+    { value: "tunai", label: "Tunai" },
+    { value: "qris", label: "QRIS (Scan Barcode)" },
+    {
+      value: "transfer_bca",
+      label: "Transfer Bank - BCA (1234567890 a.n PT ECOM)",
+    },
+    {
+      value: "transfer_bri",
+      label: "Transfer Bank - BRI (0987654321 a.n PT ECOM)",
+    },
+    {
+      value: "transfer_bni",
+      label: "Transfer Bank - BNI (1122334455 a.n PT ECOM)",
+    },
+    {
+      value: "transfer_mandiri",
+      label: "Transfer Bank - Mandiri (2233445566 a.n PT ECOM)",
+    },
+    { value: "ovo", label: "OVO (085712345678)" },
+    { value: "gopay", label: "GoPay (085798765432)" },
+    { value: "dana", label: "DANA (085765432109)" },
+    { value: "shopeepay", label: "ShopeePay (Hubungkan via QR / Akun)" },
+  ];
 
   const subtotal = cartItems.reduce(
     (acc, item) => acc + item.harga * item.quantity,
@@ -150,16 +161,36 @@ const Checkout = ({ cartItems, setCartItems, onBack }) => {
           body: JSON.stringify({
             customerNumber,
             customerGender,
-            totalTransaksi: total, // 🟡 Tambahkan ini
+            totalTransaksi: total,
           }),
         });
 
         cetakStruk();
-        Swal.fire(
-          "Berhasil",
-          "Pembayaran berhasil dan struk dicetak!",
-          "success"
-        ).then(() => navigate("/daftarPemasukan"));
+        Swal.fire({
+          title: "Pembayaran Berhasil!",
+          html: `
+    <div style="text-align: left;">
+      <p><strong>Tanggal:</strong> ${waktuTransaksi}</p>
+      <p><strong>Kasir:</strong> ${kasir}</p>
+      <p><strong>Pembeli:</strong> ${customerNumber || "-"}</p>
+      <p><strong>Gender:</strong> ${customerGender || "-"}</p>
+      <p><strong>Metode:</strong> ${paymentMethod}</p>
+      <p><strong>Subtotal:</strong> Rp ${formatRupiah(subtotal)}</p>
+      <p><strong>Diskon:</strong> Rp ${formatRupiah(discountAmount)}</p>
+      <p><strong>Total:</strong> Rp ${formatRupiah(total)}</p>
+      ${
+        paymentMethod === "tunai"
+          ? `<p><strong>Dibayar:</strong> Rp ${formatRupiah(
+              uangDibayarValue
+            )}</p>
+             <p><strong>Kembalian:</strong> Rp ${formatRupiah(kembalian)}</p>`
+          : ""
+      }
+    </div>
+  `,
+          icon: "success",
+          confirmButtonText: "Lanjut",
+        }).then(() => navigate("/daftarPemasukan"));
       } else {
         Swal.fire(
           "Gagal Checkout",
@@ -206,22 +237,22 @@ const Checkout = ({ cartItems, setCartItems, onBack }) => {
         Keranjang Belanja
       </h2>
 
-<div className="mb-4">
-  <label className="text-sm font-medium">Nomor Pembeli:</label>
-  <input
-    type="text"
-    value={customerNumber}
-    onChange={(e) => {
-      const value = e.target.value.replace(/\D/g, ""); // hanya angka
-      if (value.length <= 13) {
-        setCustomerNumber(value);
-      }
-    }}
-    maxLength={13}
-    className="w-full border p-2 rounded mt-1"
-    placeholder="Opsional"
-  />
-</div>
+      <div className="mb-4">
+        <label className="text-sm font-medium">Nomor Pembeli:</label>
+        <input
+          type="text"
+          value={customerNumber}
+          onChange={(e) => {
+            const value = e.target.value.replace(/\D/g, ""); // hanya angka
+            if (value.length <= 13) {
+              setCustomerNumber(value);
+            }
+          }}
+          maxLength={13}
+          className="w-full border p-2 rounded mt-1"
+          placeholder="Opsional"
+        />
+      </div>
 
       <div className="mb-6">
         <h3 className="font-semibold mb-2">Produk:</h3>
@@ -313,19 +344,17 @@ const Checkout = ({ cartItems, setCartItems, onBack }) => {
           onChange={(e) => setPaymentMethod(e.target.value)}
           className="w-full border p-2 rounded"
         >
-<option value="">-- Pilih --</option>
-  {dummyMetodePembayaran.map((metode) => (
-    <option key={metode.value} value={metode.value}>
-      {metode.label}
-    </option>
-  ))}
-
+          <option value="">-- Pilih --</option>
+          {dummyMetodePembayaran.map((metode) => (
+            <option key={metode.value} value={metode.value}>
+              {metode.label}
+            </option>
+          ))}
         </select>
 
         {paymentMethod === "qris" && (
-  <DummyQris total={total} invoice={`INV-${Date.now()}`} />
-)}
-
+          <DummyQris total={total} invoice={`INV-${Date.now()}`} />
+        )}
 
         {paymentMethod === "tunai" && (
           <div className="mt-4">

@@ -15,6 +15,7 @@ import {
   ShoppingBag,
   File,
   User2,
+  VibrateIcon,
 } from "lucide-react";
 
 const navItems = [
@@ -41,7 +42,7 @@ const navItems = [
   },
   {
     title: "Bahan Mentah",
-    icon: File,
+    icon: VibrateIcon,
     submenu: [
       {
         title: "Bahan Keluar",
@@ -91,9 +92,9 @@ const navItems = [
     title: "Absensi",
     icon: User,
     submenu: [
-      { title: "Absensi", href: "/absen", allowedRoles: ["Admin", "Pegawai"] },
-      { title: "Daftar Absen", href: "/daftarAbsen", allowedRoles: ["Admin"] },
-      { title: "Rekap Absen", href: "/rekapAbsen", allowedRoles: ["Admin"] },
+      // { title: "Absensi", href: "/absen", allowedRoles: ["Admin", "Pegawai"] },
+      // { title: "Daftar Absen", href: "/daftarAbsen", allowedRoles: ["Admin"] },
+      // { title: "Rekap Absen", href: "/rekapAbsen", allowedRoles: ["Admin"] },
       {
         title: "Daftar Karyawan",
         href: "/daftarKaryawan",

@@ -19,7 +19,7 @@ const Navbar = () => {
         {token && (
           <>
             <h1 className="text-lg font-semibold">
-              Hallo, {user?.username || "Pengguna"} 👋
+              Hallo, {user?.username || "Pengelola"} 👋
             </h1>
             <button
               onClick={handleLogout}
