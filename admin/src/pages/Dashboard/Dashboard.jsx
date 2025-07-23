@@ -251,7 +251,7 @@ const filterData = useCallback(() => {
               <div className="relative">
                 <Bell
                   className="w-6 h-6 text-gray-600 cursor-pointer hover:text-blue-600 transition-colors"
-                  onClick={() => setActiveTab("notifications")}
+                  onClick={() => setActiveTab("Notifikasi")}
                 />
                 <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                   {notifications.length}
@@ -342,7 +342,7 @@ const filterData = useCallback(() => {
 
             {/* Charts Section */}
             <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:space-x-4">
-              <div>
+              {/* <div>
                 <label className="block text-sm font-semibold mb-1">
                   Pilih Bulan:
                 </label>
@@ -379,7 +379,7 @@ const filterData = useCallback(() => {
                     );
                   })}
                 </select>
-              </div>
+              </div> */}
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

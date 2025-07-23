@@ -95,7 +95,7 @@ const DaftarPelanggan = () => {
         <thead className="bg-gray-100">
           <tr>
             <th className="border px-2 py-1">No.</th>
-            <th className="border px-2 py-1">Nomor Pembeli</th>
+            <th className="border px-2 py-1">Nomor Handpone Pembeli</th>
             <th className="border px-2 py-1">Total Transaksi</th>
             <th className="border px-2 py-1">Status</th>
             <th className="border px-2 py-1">Aksi</th>

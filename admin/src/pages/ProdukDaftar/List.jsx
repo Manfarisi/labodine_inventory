@@ -95,10 +95,10 @@ const filteredList = list.filter((item) => {
         <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6">
           <div>
             <h1 className="text-3xl font-bold text-gray-800 mb-1 text-center md:text-left">
-              Daftar Makanan
+              Daftar Produk
             </h1>
             <p className="text-gray-600 text-center md:text-left">
-              Manajemen menu makanan
+              Manajemen Menu Produk
             </p>
           </div>
           <button
@@ -124,7 +124,7 @@ const filteredList = list.filter((item) => {
             <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
               type="text"
-              placeholder="Cari nama makanan..."
+              placeholder="Cari nama produk..."
               value={search}
               onChange={(e) => {
                 setSearch(e.target.value);
@@ -237,10 +237,10 @@ const filteredList = list.filter((item) => {
                     <div className="flex flex-col items-center justify-center space-y-4">
                       <FaPlus className="h-12 w-12 text-gray-400" />
                       <h3 className="text-xl font-semibold">
-                        Belum ada makanan terdaftar
+                        Belum ada produk terdaftar
                       </h3>
                       <p className="text-gray-500">
-                        Mulai dengan menambahkan menu makanan baru.
+                        Mulai dengan menambahkan menu produk baru.
                       </p>
                       <button
                         onClick={() => navigate("/add")}

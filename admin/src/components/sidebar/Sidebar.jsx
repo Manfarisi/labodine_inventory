@@ -73,7 +73,7 @@ const navItems = [
     ],
   },
   {
-    title: "Transaksi",
+    title: "Laporan",
     icon: ShoppingBasket,
     submenu: [
       {
@@ -89,18 +89,10 @@ const navItems = [
     ],
   },
   {
-    title: "Absensi",
+    title: "Daftar Karyawan",
     icon: User,
-    submenu: [
-      // { title: "Absensi", href: "/absen", allowedRoles: ["Admin", "Pegawai"] },
-      // { title: "Daftar Absen", href: "/daftarAbsen", allowedRoles: ["Admin"] },
-      // { title: "Rekap Absen", href: "/rekapAbsen", allowedRoles: ["Admin"] },
-      {
-        title: "Daftar Karyawan",
-        href: "/daftarKaryawan",
-        allowedRoles: ["Admin"],
-      },
-    ],
+    href: "/daftarKaryawan",
+    allowedRoles: ["Admin"],
   },
 ];
 
