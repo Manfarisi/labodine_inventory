@@ -35,8 +35,8 @@ import DaftarPelanggan from "./pages/Pelanggan/Pelanggan";
 import ManajemenUser from "./pages/ManajemenUser/ManajemenUser";
 
 const App = () => {
-  // const url = import.meta.env.VITE_API_URL.replace(/\/$/, "");
-  const url = "http://localhost:4000"
+  const url = import.meta.env.VITE_API_URL.replace(/\/$/, "");
+  // const url = "http://localhost:4000"
   return (
     <div>
       <ToastContainer />
