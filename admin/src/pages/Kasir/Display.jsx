@@ -93,8 +93,8 @@ const ProductList = ({ url }) => {
     const fetchData = async () => {
       try {
         const [produkRes, checkoutRes] = await Promise.all([
-          axios.get(`{url}/api/food/list`),
-          axios.get(`{url}/api/checkout/daftarCheckout`),
+          axios.get(`${url}/api/food/list`),
+          axios.get(`${url}/api/checkout/daftarCheckout`),
         ]);
 
         if (produkRes.data.success) {
