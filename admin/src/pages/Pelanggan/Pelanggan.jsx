@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 
-const DaftarPelanggan = () => {
+const DaftarPelanggan = ({ url }) => {
   const [pelanggan, setPelanggan] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -14,7 +14,7 @@ const DaftarPelanggan = () => {
 
   const fetchPelanggan = async () => {
     try {
-      const res = await fetch("http://localhost:4000/api/pelanggan/daftar");
+      const res = await fetch(`${url}api/pelanggan/daftar`);
       const data = await res.json();
       if (data.success) {
         setPelanggan(data.data);
