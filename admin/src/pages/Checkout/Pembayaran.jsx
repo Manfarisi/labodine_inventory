@@ -136,7 +136,7 @@ const Checkout = ({ cartItems, setCartItems, onBack }) => {
 
     try {
       const response = await fetch(
-        "http://localhost:4000/api/checkout/checkout",
+        `${url}/api/checkout/checkout`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -149,7 +149,7 @@ const Checkout = ({ cartItems, setCartItems, onBack }) => {
       if (result.success) {
         await Promise.all(
           cartItems.map((item) =>
-            fetch("http://localhost:4000/api/food/kurangi-stok", {
+            fetch(`${url}/api/food/kurangi-stok`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ id: item._id, jumlah: item.quantity }),
@@ -157,7 +157,7 @@ const Checkout = ({ cartItems, setCartItems, onBack }) => {
           )
         );
 
-        await fetch("http://localhost:4000/api/pelanggan/tambah", {
+        await fetch(`${url}/api/pelanggan/tambah`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
