@@ -259,6 +259,7 @@ const ProductList = ({ url }) => {
             key={product._id}
             product={product}
             onAddToCart={handleAddToCart}
+            url={url}
           />
         ))}
       </div>
