@@ -14,7 +14,7 @@ const DaftarPelanggan = ({ url }) => {
 
   const fetchPelanggan = async () => {
     try {
-      const res = await fetch(`${url}api/pelanggan/daftar`);
+      const res = await fetch(`${url}/api/pelanggan/daftar`);
       const data = await res.json();
       if (data.success) {
         setPelanggan(data.data);
