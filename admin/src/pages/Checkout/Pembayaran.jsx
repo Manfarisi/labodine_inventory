@@ -13,6 +13,8 @@ const Checkout = ({ cartItems, setCartItems, onBack }) => {
   const [customerNumber, setCustomerNumber] = useState("");
   const [uangDibayar, setUangDibayar] = useState("");
   const [showDaftarProduk, setShowDaftarProduk] = useState(false);
+  const url = import.meta.env.VITE_API_URL.replace(/\/$/, "");
+
 
   const navigate = useNavigate();
   const kasir = JSON.parse(localStorage.getItem("user"))?.username || "Kasir";
@@ -211,6 +213,7 @@ const Checkout = ({ cartItems, setCartItems, onBack }) => {
   if (showDaftarProduk) {
     return (
       <DaftarProdukSederhana
+      url = {url}
         onClose={() => setShowDaftarProduk(false)}
         onAddToCart={(product) => {
           const exist = cartItems.find((p) => p._id === product._id);
@@ -226,7 +229,6 @@ const Checkout = ({ cartItems, setCartItems, onBack }) => {
             setCartItems([...cartItems, product]);
           }
         }}
-        url="http://localhost:4000"
       />
     );
   }
