@@ -7,6 +7,8 @@ import { NumericFormat } from "react-number-format";
 const ProductCard = ({ product, onAddToCart, url }) => {
   const { namaProduk, keterangan, image, harga, hpp, jumlah } = product;
   const [count, setCount] = useState(0);
+  const baseURL = "https://labodinebe-production.up.railway.app";
+
 
   const handleIncrement = () => {
     if (count < jumlah) setCount((prev) => prev + 1);
@@ -20,7 +22,7 @@ const ProductCard = ({ product, onAddToCart, url }) => {
     <div className="bg-white/90 backdrop-blur-md rounded-2xl overflow-hidden shadow-xl transition-transform duration-500 ease-in-out transform hover:-translate-y-4 hover:scale-[1.02] relative cursor-pointer">
       <div className="relative h-48 overflow-hidden bg-gradient-to-tr from-gray-200 to-gray-100">
         <img
-          src={`${url}/images/${image}`}
+          src={`${baseURL}/images/${image}`}
           alt={namaProduk}
           className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
         />
