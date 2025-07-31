@@ -7,12 +7,12 @@
       "config": { "distDir": "admin/dist" }
     },
     {
-      "src": "backend/index.js",
+      "src": "backend/server.js",
       "use": "@vercel/node"
     }
   ],
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/backend/index.js" },
+    { "source": "/api/(.*)", "destination": "/backend/server.js" }, 
     { "source": "/(.*)", "destination": "/admin/dist/index.html" }
   ]
 }
