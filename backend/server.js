@@ -22,6 +22,7 @@ app.use(express.urlencoded({ extended: true }));
 
 
 // middleware
+
 // vercel
 
 const allowedOrigins = [
@@ -45,7 +46,10 @@ app.use(cors({
 
 
 // api endpoint
-app.use("/images",express.static('uploads'))
+app.use("/images",express.static('uploads')) //untuk foto produk
+
+app.use("/images", express.static("public/images")); //untuk foto pengguna
+
 app.use("/api/food",foodRouter)
 app.use("/api/user",userRouter)
 app.use("/api/checkout",checkoutRouter)
@@ -53,8 +57,8 @@ app.use("/api/pegawai",absenRouter)
 app.use("/api/pelanggan",pelangganRouter)
 
 
-app.use("/api/bahanBaku",bahanBakuRouter)
 // app.use("/api/bahanKeluar",ProdukKeluarRouter)
+app.use("/api/bahanBaku",bahanBakuRouter)
 app.use("/api/pengeluaran",pengeluaranRouter)
 app.use("/api/pemasukan",pemasukanRouter)
 

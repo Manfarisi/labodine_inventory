@@ -109,6 +109,8 @@ const registerUser = async (req, res) => {
     alamat,
   } = req.body;
 
+  const foto = req.file?.filename; // ⬅️ Ambil nama file jika ada
+
   try {
     if (email === ADMIN_EMAIL) {
       return res.json({
@@ -148,7 +150,8 @@ const registerUser = async (req, res) => {
       jenisKelamin,
       noTelepon,
       alamat,
-      status: "pending", // ⬅️ Tambahkan ini
+      foto, // ⬅️ Simpan nama file gambar
+      status: "pending",
     });
 
     const user = await newUser.save();
@@ -156,11 +159,10 @@ const registerUser = async (req, res) => {
     res.json({ success: true, token });
   } catch (error) {
     console.error(error);
-    console.log("Data registrasi:", req.body);
-
     res.json({ success: false, message: "Error" });
   }
 };
+
 
 // controller userController.js
 const getAllUsers = async (req, res) => {
