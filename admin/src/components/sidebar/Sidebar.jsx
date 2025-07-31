@@ -88,12 +88,6 @@ const navItems = [
       },
     ],
   },
-  {
-    title: "Daftar Karyawan",
-    icon: User,
-    href: "/daftarKaryawan",
-    allowedRoles: ["Admin"],
-  },
 ];
 
 const Sidebar = () => {
