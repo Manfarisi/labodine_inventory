@@ -7,7 +7,7 @@ import { NumericFormat } from "react-number-format";
 const ProductCard = ({ product, onAddToCart, url }) => {
   const { namaProduk, keterangan, image, harga, hpp, jumlah } = product;
   const [count, setCount] = useState(0);
-  const baseURL = "https://labodinebe-production.up.railway.app";
+  const baseURL = "https://skipsibe-production.up.railway.app";
 
 
   const handleIncrement = () => {
