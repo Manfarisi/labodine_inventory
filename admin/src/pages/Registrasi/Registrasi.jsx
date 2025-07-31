@@ -1,9 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
-import { Lock } from "lucide-react";
+import { Lock, Eye, EyeOff } from "lucide-react";
 import Swal from "sweetalert2";
-import { Eye, EyeOff } from "lucide-react";
 
 function Register({ url }) {
   const [username, setUsername] = useState("");
@@ -13,6 +12,7 @@ function Register({ url }) {
   const [jenisKelamin, setJenisKelamin] = useState("");
   const [noTelepon, setNoTelepon] = useState("");
   const [alamat, setAlamat] = useState("");
+  const [foto, setFoto] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
 
   const navigate = useNavigate();
@@ -20,14 +20,20 @@ function Register({ url }) {
   const handleRegister = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post(`${url}/api/user/register`, {
-        username,
-        email,
-        password,
-        namaLengkap,
-        jenisKelamin,
-        noTelepon,
-        alamat,
+      const formData = new FormData();
+      formData.append("username", username);
+      formData.append("email", email);
+      formData.append("password", password);
+      formData.append("namaLengkap", namaLengkap);
+      formData.append("jenisKelamin", jenisKelamin);
+      formData.append("noTelepon", noTelepon);
+      formData.append("alamat", alamat);
+      formData.append("foto", foto); // Upload foto profil
+
+      const res = await axios.post(`${url}/api/user/register`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       });
 
       if (res.data.success) {
@@ -149,7 +155,7 @@ function Register({ url }) {
           type="text"
           inputMode="numeric"
           pattern="[0-9]*"
-          maxLength={13} // ← batasi maksimal 13 karakter
+          maxLength={13}
           placeholder="No. Telepon"
           value={noTelepon}
           onChange={(e) => {
@@ -167,6 +173,17 @@ function Register({ url }) {
           className="w-full mb-4 px-4 py-2 border border-gray-300 rounded"
           required
         />
+
+        <div className="mb-4">
+          <label className="block text-gray-700 mb-1">Foto Profil</label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => setFoto(e.target.files[0])}
+            className="w-full"
+            required
+          />
+        </div>
 
         <button
           type="submit"
