@@ -4,16 +4,15 @@
     {
       "src": "admin/package.json",
       "use": "@vercel/static-build",
-      "config": { "distDir": "admin/dist" }
+      "config": { "distDir": "dist" }
     },
     {
       "src": "backend/server.js",
       "use": "@vercel/node"
     }
   ],
-"rewrites": [
-  { "source": "/api/(.*)", "destination": "/backend/server.js" },
-  { "source": "/(.*)", "destination": "/admin/dist/index.html" }
-]
-
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/backend/server.js" },
+    { "source": "/(.*)", "destination": "/dist/index.html" }
+  ]
 }
