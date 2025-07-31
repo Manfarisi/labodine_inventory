@@ -83,6 +83,8 @@ function Register({ url }) {
           type="text"
           placeholder="Nama Lengkap"
           value={namaLengkap}
+          minLength={10}
+          maxLength={120}
           onChange={(e) => setNamaLengkap(e.target.value)}
           className="w-full mb-4 px-4 py-2 border border-gray-300 rounded"
           required
@@ -92,6 +94,8 @@ function Register({ url }) {
           type="text"
           placeholder="Username"
           value={username}
+          minLength={10}
+          maxLength={120}
           onChange={(e) => setUsername(e.target.value)}
           className="w-full mb-4 px-4 py-2 border border-gray-300 rounded"
           required
@@ -155,6 +159,7 @@ function Register({ url }) {
           type="text"
           inputMode="numeric"
           pattern="[0-9]*"
+          minLength={11}
           maxLength={13}
           placeholder="No. Telepon"
           value={noTelepon}
@@ -169,6 +174,8 @@ function Register({ url }) {
         <textarea
           placeholder="Alamat"
           value={alamat}
+          minLength={11}
+          maxLength={150}
           onChange={(e) => setAlamat(e.target.value)}
           className="w-full mb-4 px-4 py-2 border border-gray-300 rounded"
           required
