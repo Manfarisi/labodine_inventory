@@ -26,7 +26,7 @@ app.use(express.urlencoded({ extended: true }));
 // vercel
 
 const allowedOrigins = [
-  'https://labodine-inventory-fe.vercel.app',
+  'https://vercel-fe-seven.vercel.app',
   'http://localhost:5173'
 ];
 // railway
