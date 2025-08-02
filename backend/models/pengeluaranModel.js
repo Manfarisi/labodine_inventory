@@ -7,7 +7,7 @@ const pengeluaranSchema = new mongoose.Schema({
   jenisPengeluaran: {
     type: String,
     required: true,
-    enum: ['Listrik', 'Air', 'Gaji','Operasional', 'Sewa','Transportasi','Konsumsi', 'Lainya'], // bisa kamu ubah sesuai kasus
+    enum: ['Listrik', 'Air', 'Gaji','Operasional', 'Sewa','Transportasi','Konsumsi', 'Lainnya'], // bisa kamu ubah sesuai kasus
   },
   tanggal: {type: Date, required: true },
 });
